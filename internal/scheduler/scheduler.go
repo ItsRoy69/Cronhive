@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/ItsRoy69/cronhive/internal/store"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/robfig/cron/v3"
 )
