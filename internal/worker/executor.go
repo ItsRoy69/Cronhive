@@ -23,7 +23,7 @@ type runDetails struct {
 	HTTPHeaders map[string]string
 }
 
-func (w *Worker) claimAndRun(ctx context.Context) {
+func (w *Worker) claimAndRun(ctx context.Context) bool {
 	var runID string
 	err := w.db.QueryRow(ctx, `
 		WITH claimed AS (
@@ -41,16 +41,17 @@ func (w *Worker) claimAndRun(ctx context.Context) {
 	`).Scan(&runID)
 
 	if err != nil || runID == "" {
-		return
+		return false
 	}
 
 	run, err := w.loadRun(ctx, runID)
 	if err != nil {
 		log.Printf("failed to load run %s: %v", runID, err)
-		return
+		return false
 	}
 
 	w.execute(ctx, run)
+	return true
 }
 
 func (w *Worker) loadRun(ctx context.Context, runID string) (*runDetails, error) {

@@ -38,11 +38,26 @@ func (w *Worker) Run(ctx context.Context) {
 			log.Println("worker stopping")
 			return
 		case <-ticker.C:
-			w.sem <- struct{}{}
+			w.drain(ctx)
+		}
+	}
+}
+
+func (w *Worker) drain(ctx context.Context) {
+	for {
+		select {
+		case w.sem <- struct{}{}:
+			claimed := make(chan bool, 1)
 			go func() {
 				defer func() { <-w.sem }()
-				w.claimAndRun(ctx)
+				ok := w.claimAndRun(ctx)
+				claimed <- ok
 			}()
+			if !<-claimed {
+				return
+			}
+		default:
+			return
 		}
 	}
 }
