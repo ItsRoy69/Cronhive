@@ -58,7 +58,7 @@ func (w *Worker) loadRun(ctx context.Context, runID string) (*runDetails, error)
 
 	err := w.db.QueryRow(ctx, `
 		SELECT r.id, r.job_id, r.tenant_id, r.attempt,
-			j.http_url, j.http_method, j.http_body,
+			j.http_url, j.http_method, COALESCE(j.http_body, ''),
 			j.timeout_secs, j.max_retries
 		FROM runs r
 		JOIN jobs j ON j.id = r.job_id
@@ -190,8 +190,8 @@ func (w *Worker) handleFailure(ctx context.Context, run *runDetails, errMsg stri
 func (w *Worker) notifyEvent(ctx context.Context, runID, event string) {
 	_, err := w.db.Exec(ctx, `
 		SELECT pg_notify('run_events', json_build_object(
-			'event', $1,
-			'run_id', $2
+			'event', $1::text,
+			'run_id', $2::text
 		)::text)
 	`, event, runID)
 	if err != nil {
