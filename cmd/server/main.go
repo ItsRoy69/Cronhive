@@ -12,6 +12,7 @@ import (
 	"github.com/ItsRoy69/cronhive/internal/config"
 	"github.com/ItsRoy69/cronhive/internal/scheduler"
 	"github.com/ItsRoy69/cronhive/internal/store"
+	"github.com/ItsRoy69/cronhive/internal/worker"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -39,6 +40,9 @@ func main() {
 
 	sched := scheduler.New(pool)
 	go sched.Run(ctx)
+
+	w := worker.New(pool, 10)
+	go w.Run(ctx)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
