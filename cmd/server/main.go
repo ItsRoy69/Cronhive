@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/ItsRoy69/cronhive/internal/alerter"
 	"github.com/ItsRoy69/cronhive/internal/api"
 	"github.com/ItsRoy69/cronhive/internal/config"
 	"github.com/ItsRoy69/cronhive/internal/scheduler"
@@ -44,6 +45,9 @@ func main() {
 
 	w := worker.New(pool, 10)
 	go w.Run(ctx)
+
+	a := alerter.New(pool)
+	go a.Listen(ctx)
 
 	h := api.NewHandler(pool, sched)
 
