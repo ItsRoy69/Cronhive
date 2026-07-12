@@ -6,6 +6,10 @@ import (
 )
 
 func (s *Scheduler) nextRun(cronExpr, timezone string) (time.Time, error) {
+	return s.NextRun(cronExpr, timezone)
+}
+
+func (s *Scheduler) NextRun(cronExpr, timezone string) (time.Time, error) {
 	loc, err := time.LoadLocation(timezone)
 	if err != nil {
 		loc = time.UTC

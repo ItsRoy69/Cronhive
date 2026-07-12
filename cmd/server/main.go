@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/ItsRoy69/cronhive/internal/api"
 	"github.com/ItsRoy69/cronhive/internal/config"
 	"github.com/ItsRoy69/cronhive/internal/scheduler"
 	"github.com/ItsRoy69/cronhive/internal/store"
@@ -44,6 +45,8 @@ func main() {
 	w := worker.New(pool, 10)
 	go w.Run(ctx)
 
+	h := api.NewHandler(pool, sched)
+
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
@@ -53,6 +56,21 @@ func main() {
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"status":"ok"}`))
+	})
+
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Use(api.AuthMiddleware(pool))
+
+		r.Route("/jobs", func(r chi.Router) {
+			r.Get("/", h.ListJobs)
+			r.Post("/", h.CreateJob)
+			r.Get("/{jobID}", h.GetJob)
+			r.Delete("/{jobID}", h.DeleteJob)
+			r.Post("/{jobID}/pause", h.PauseJob)
+			r.Post("/{jobID}/resume", h.ResumeJob)
+			r.Post("/{jobID}/trigger", h.TriggerJob)
+			r.Get("/{jobID}/runs", h.ListRuns)
+		})
 	})
 
 	go func() {
