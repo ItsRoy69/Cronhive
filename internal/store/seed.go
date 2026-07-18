@@ -46,7 +46,7 @@ func Seed(ctx context.Context, db *pgxpool.Pool) error {
 			'test-job',
 			'* * * * *',
 			'UTC',
-			'https://httpbin.org/post',
+			'http://localhost:8081/health',
 			'POST',
 			now()
 		)

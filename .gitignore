@@ -20,6 +20,7 @@ dashboard/.next/
 dashboard/out/
 dashboard/.env
 dashboard/.env.*
+!dashboard/.env.example
 
 # IDE
 .vscode/
