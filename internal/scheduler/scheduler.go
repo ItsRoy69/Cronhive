@@ -27,6 +27,20 @@ func New(db *pgxpool.Pool) *Scheduler {
 
 func (s *Scheduler) Run(ctx context.Context) {
 	log.Println("scheduler starting...")
+
+	conn, err := s.acquireLeader(ctx)
+	if err != nil {
+		log.Printf("scheduler: failed to acquire leader lock: %v", err)
+		return
+	}
+	defer func() {
+		_, _ = conn.Exec(context.Background(), "SELECT pg_advisory_unlock($1)", leaderLockKey)
+		conn.Release()
+		log.Println("scheduler: released leader lock")
+	}()
+
+	log.Println("scheduler: acquired leader lock")
+
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
@@ -36,23 +50,37 @@ func (s *Scheduler) Run(ctx context.Context) {
 			log.Println("scheduler stopping")
 			return
 		case <-ticker.C:
-			if s.tryAcquireLeader(ctx) {
-				if err := s.pollAndDispatch(ctx); err != nil {
-					log.Printf("scheduler poll error: %v", err)
-				}
+			if err := s.pollAndDispatch(ctx); err != nil {
+				log.Printf("scheduler poll error: %v", err)
 			}
 		}
 	}
 }
 
-func (s *Scheduler) tryAcquireLeader(ctx context.Context) bool {
-	var acquired bool
-	err := s.db.QueryRow(ctx,
-		"SELECT pg_try_advisory_lock($1)", leaderLockKey,
-	).Scan(&acquired)
+func (s *Scheduler) acquireLeader(ctx context.Context) (*pgxpool.Conn, error) {
+	conn, err := s.db.Acquire(ctx)
 	if err != nil {
-		log.Printf("leader election error: %v", err)
-		return false
+		return nil, err
 	}
-	return acquired
+
+	for {
+		var acquired bool
+		err := conn.QueryRow(ctx,
+			"SELECT pg_try_advisory_lock($1)", leaderLockKey,
+		).Scan(&acquired)
+		if err != nil {
+			conn.Release()
+			return nil, err
+		}
+		if acquired {
+			return conn, nil
+		}
+
+		select {
+		case <-ctx.Done():
+			conn.Release()
+			return nil, ctx.Err()
+		case <-time.After(2 * time.Second):
+		}
+	}
 }
