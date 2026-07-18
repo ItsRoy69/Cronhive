@@ -77,11 +77,25 @@ func main() {
 			r.Get("/", h.ListJobs)
 			r.Post("/", h.CreateJob)
 			r.Get("/{jobID}", h.GetJob)
+			r.Put("/{jobID}", h.UpdateJob)
 			r.Delete("/{jobID}", h.DeleteJob)
 			r.Post("/{jobID}/pause", h.PauseJob)
 			r.Post("/{jobID}/resume", h.ResumeJob)
 			r.Post("/{jobID}/trigger", h.TriggerJob)
 			r.Get("/{jobID}/runs", h.ListRuns)
+		})
+
+		r.Route("/runs", func(r chi.Router) {
+			r.Get("/{runID}", h.GetRun)
+			r.Get("/{runID}/logs", h.GetRunLogs)
+		})
+
+		r.Route("/alerts", func(r chi.Router) {
+			r.Get("/", h.ListAlertConfigs)
+			r.Post("/", h.CreateAlertConfig)
+			r.Get("/{configID}", h.GetAlertConfig)
+			r.Put("/{configID}", h.UpdateAlertConfig)
+			r.Delete("/{configID}", h.DeleteAlertConfig)
 		})
 	})
 

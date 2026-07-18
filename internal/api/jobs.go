@@ -287,3 +287,72 @@ func (h *Handler) ListRuns(w http.ResponseWriter, r *http.Request) {
 	}
 	jsonOK(w, runs)
 }
+
+func (h *Handler) UpdateJob(w http.ResponseWriter, r *http.Request) {
+	tenantID := r.Context().Value(tenantKey).(string)
+	jobID := chi.URLParam(r, "jobID")
+
+	var body struct {
+		Name        *string            `json:"name"`
+		CronExpr    *string            `json:"cron_expr"`
+		Timezone    *string            `json:"timezone"`
+		HTTPURL     *string            `json:"http_url"`
+		HTTPMethod  *string            `json:"http_method"`
+		HTTPHeaders map[string]string  `json:"http_headers"`
+		HTTPBody    *string            `json:"http_body"`
+		TimeoutSecs *int               `json:"timeout_secs"`
+		MaxRetries  *int               `json:"max_retries"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		jsonError(w, "invalid request body", 400)
+		return
+	}
+
+	var nextRun *time.Time
+	if body.CronExpr != nil {
+		tz := "UTC"
+		if body.Timezone != nil {
+			tz = *body.Timezone
+		}
+		nr, err := h.sched.NextRun(*body.CronExpr, tz)
+		if err != nil {
+			jsonError(w, "invalid cron_expr: "+err.Error(), 400)
+			return
+		}
+		nextRun = &nr
+	}
+
+	var headers []byte
+	if body.HTTPHeaders != nil {
+		headers, _ = json.Marshal(body.HTTPHeaders)
+	}
+
+	tag, err := h.db.Exec(r.Context(), `
+		UPDATE jobs SET
+			name         = COALESCE($1, name),
+			cron_expr    = COALESCE($2, cron_expr),
+			timezone     = COALESCE($3, timezone),
+			http_url     = COALESCE($4, http_url),
+			http_method  = COALESCE($5, http_method),
+			http_headers = COALESCE($6, http_headers),
+			http_body    = COALESCE($7, http_body),
+			timeout_secs = COALESCE($8, timeout_secs),
+			max_retries  = COALESCE($9, max_retries),
+			next_run_at  = COALESCE($10, next_run_at)
+		WHERE id = $11 AND tenant_id = $12
+	`, body.Name, body.CronExpr, body.Timezone, body.HTTPURL,
+		body.HTTPMethod, headers, body.HTTPBody,
+		body.TimeoutSecs, body.MaxRetries, nextRun,
+		jobID, tenantID)
+	if err != nil {
+		jsonError(w, "failed to update job", 500)
+		return
+	}
+	if tag.RowsAffected() == 0 {
+		jsonError(w, "job not found", 404)
+		return
+	}
+
+	jsonOK(w, map[string]string{"status": "updated"})
+}
