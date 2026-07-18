@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -57,18 +58,22 @@ func (w *Worker) claimAndRun(ctx context.Context) bool {
 func (w *Worker) loadRun(ctx context.Context, runID string) (*runDetails, error) {
 	run := &runDetails{ID: runID, HTTPHeaders: make(map[string]string)}
 
+	var headersJSON []byte
 	err := w.db.QueryRow(ctx, `
 		SELECT r.id, r.job_id, r.tenant_id, r.attempt,
 			j.http_url, j.http_method, COALESCE(j.http_body, ''),
-			j.timeout_secs, j.max_retries
+			j.timeout_secs, j.max_retries, j.http_headers
 		FROM runs r
 		JOIN jobs j ON j.id = r.job_id
 		WHERE r.id = $1
 	`, runID).Scan(
 		&run.ID, &run.JobID, &run.TenantID, &run.Attempt,
 		&run.HTTPURL, &run.HTTPMethod, &run.HTTPBody,
-		&run.TimeoutSecs, &run.MaxRetries,
+		&run.TimeoutSecs, &run.MaxRetries, &headersJSON,
 	)
+	if err == nil && len(headersJSON) > 0 {
+		_ = json.Unmarshal(headersJSON, &run.HTTPHeaders)
+	}
 	return run, err
 }
 
@@ -91,6 +96,10 @@ func (w *Worker) execute(ctx context.Context, run *runDetails) {
 	if err != nil {
 		w.handleFailure(ctx, run, fmt.Sprintf("failed to build request: %v", err))
 		return
+	}
+
+	for k, v := range run.HTTPHeaders {
+		req.Header.Set(k, v)
 	}
 
 	req.Header.Set("X-Cronhive-Run-ID", run.ID)
