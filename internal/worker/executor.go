@@ -12,16 +12,17 @@ import (
 )
 
 type runDetails struct {
-	ID          string
-	JobID       string
-	TenantID    string
-	HTTPURL     string
-	HTTPMethod  string
-	HTTPBody    string
-	TimeoutSecs int
-	MaxRetries  int
-	Attempt     int
-	HTTPHeaders map[string]string
+	ID           string
+	JobID        string
+	TenantID     string
+	HTTPURL      string
+	HTTPMethod   string
+	HTTPBody     string
+	TimeoutSecs  int
+	MaxRetries   int
+	Attempt      int
+	HTTPHeaders  map[string]string
+	RetryBackoff string
 }
 
 func (w *Worker) claimAndRun(ctx context.Context) bool {
@@ -62,7 +63,8 @@ func (w *Worker) loadRun(ctx context.Context, runID string) (*runDetails, error)
 	err := w.db.QueryRow(ctx, `
 		SELECT r.id, r.job_id, r.tenant_id, r.attempt,
 			j.http_url, j.http_method, COALESCE(j.http_body, ''),
-			j.timeout_secs, j.max_retries, j.http_headers
+			j.timeout_secs, j.max_retries, j.http_headers,
+			j.retry_backoff
 		FROM runs r
 		JOIN jobs j ON j.id = r.job_id
 		WHERE r.id = $1
@@ -70,6 +72,7 @@ func (w *Worker) loadRun(ctx context.Context, runID string) (*runDetails, error)
 		&run.ID, &run.JobID, &run.TenantID, &run.Attempt,
 		&run.HTTPURL, &run.HTTPMethod, &run.HTTPBody,
 		&run.TimeoutSecs, &run.MaxRetries, &headersJSON,
+		&run.RetryBackoff,
 	)
 	if err == nil && len(headersJSON) > 0 {
 		_ = json.Unmarshal(headersJSON, &run.HTTPHeaders)
@@ -165,7 +168,7 @@ func (w *Worker) handleFailure(ctx context.Context, run *runDetails, errMsg stri
 	log.Printf("run %s failed (attempt %d): %s", run.ID, run.Attempt, errMsg)
 
 	if run.Attempt < run.MaxRetries {
-		delay := time.Duration(30*(1<<run.Attempt)) * time.Second
+		delay := backoffDelay(run.RetryBackoff, run.Attempt)
 		visibleAt := time.Now().Add(delay)
 
 		_, err := w.db.Exec(ctx, `
@@ -189,12 +192,24 @@ func (w *Worker) handleFailure(ctx context.Context, run *runDetails, errMsg stri
 			log.Printf("failed to requeue run: %v", err)
 		}
 
-		log.Printf("run %s requeued, retrying at %s", run.ID, visibleAt.Format(time.RFC3339))
+		log.Printf("run %s requeued (%s backoff), retrying at %s", run.ID, run.RetryBackoff, visibleAt.Format(time.RFC3339))
+		w.notifyEvent(ctx, run.ID, "run.failure")
 		return
 	}
 
 	w.updateStatus(ctx, run.ID, "dead", errMsg)
 	w.notifyEvent(ctx, run.ID, "run.dead")
+}
+
+func backoffDelay(strategy string, attempt int) time.Duration {
+	switch strategy {
+	case "fixed":
+		return 30 * time.Second
+	case "linear":
+		return time.Duration(30*(attempt+1)) * time.Second
+	default: 
+		return time.Duration(30*(1<<attempt)) * time.Second
+	}
 }
 
 func (w *Worker) notifyEvent(ctx context.Context, runID, event string) {
