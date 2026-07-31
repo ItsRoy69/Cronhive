@@ -109,7 +109,7 @@ func runServe(ctx context.Context, cancel context.CancelFunc, cfg *config.Config
 	a := alerter.New(pool, cfg)
 	go a.Listen(ctx)
 
-	h := api.NewHandler(pool, sched)
+	h := api.NewHandler(pool, sched, cfg.JWTSecret)
 
 	allowedOrigins := strings.Split(cfg.AllowedOrigins, ",")
 
@@ -137,8 +137,14 @@ func runServe(ctx context.Context, cancel context.CancelFunc, cfg *config.Config
 	})
 	r.Handle("/metrics", promhttp.Handler())
 
+	// Public auth routes
+	r.Route("/api/v1/auth", func(r chi.Router) {
+		r.Post("/signup", h.Signup)
+		r.Post("/login", h.Login)
+	})
+
 	r.Route("/api/v1", func(r chi.Router) {
-		r.Use(api.AuthMiddleware(pool))
+		r.Use(api.AuthMiddleware(pool, cfg.JWTSecret))
 		r.Use(api.RateLimitMiddleware(cfg.RateLimitRPS))
 
 		r.Route("/jobs", func(r chi.Router) {

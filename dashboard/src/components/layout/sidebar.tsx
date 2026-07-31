@@ -14,7 +14,7 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname()
-  const { logout } = useAuth()
+  const { user, logout } = useAuth()
 
   return (
     <aside className="w-[240px] shrink-0 flex flex-col h-screen bg-sidebar border-r border-sidebar-border">
@@ -56,7 +56,11 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="px-3 py-4 border-t border-sidebar-border space-y-1">
+      <div className="px-3 py-4 border-t border-sidebar-border space-y-2">
+        <div className="px-2 mb-1">
+          <p className="text-sm font-medium text-sidebar-foreground truncate">{user.name}</p>
+          <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
+        </div>
         <div className="flex items-center justify-between px-2">
           <div className="flex items-center gap-1.5">
             <span className="relative flex size-1.5">

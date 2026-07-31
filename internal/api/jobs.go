@@ -25,12 +25,13 @@ func parsePageParams(r *http.Request) (limit, offset int) {
 }
 
 type Handler struct {
-	db   *pgxpool.Pool
-	sched *scheduler.Scheduler
+	db        *pgxpool.Pool
+	sched     *scheduler.Scheduler
+	jwtSecret string
 }
 
-func NewHandler(db *pgxpool.Pool, sched *scheduler.Scheduler) *Handler {
-	return &Handler{db: db, sched: sched}
+func NewHandler(db *pgxpool.Pool, sched *scheduler.Scheduler, jwtSecret string) *Handler {
+	return &Handler{db: db, sched: sched, jwtSecret: jwtSecret}
 }
 
 func (h *Handler) ListJobs(w http.ResponseWriter, r *http.Request) {

@@ -1,0 +1,2 @@
+ALTER TABLE tenants ADD COLUMN email TEXT UNIQUE;
+ALTER TABLE tenants ADD COLUMN password_hash TEXT;

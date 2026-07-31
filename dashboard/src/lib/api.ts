@@ -1,22 +1,48 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081'
 
-function getApiKey(): string {
+function getToken(): string {
   if (typeof window === 'undefined') return ''
-  return localStorage.getItem('cronhive_api_key') || ''
+  return localStorage.getItem('cronhive_token') || ''
 }
 
-export async function validateKey(key: string): Promise<boolean> {
-  const res = await fetch(`${API_BASE}/api/v1/jobs`, {
-    headers: { 'Authorization': `Bearer ${key}` },
+export type AuthResponse = {
+  token: string
+  tenant_id: string
+  name: string
+  email: string
+}
+
+export async function authSignup(name: string, email: string, password: string): Promise<AuthResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/auth/signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, email, password }),
   })
-  return res.ok
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Signup failed' }))
+    throw new Error(err.error || `HTTP ${res.status}`)
+  }
+  return res.json()
+}
+
+export async function authLogin(email: string, password: string): Promise<AuthResponse> {
+  const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Login failed' }))
+    throw new Error(err.error || `HTTP ${res.status}`)
+  }
+  return res.json()
 }
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}/api/v1${path}`, {
     ...options,
     headers: {
-      'Authorization': `Bearer ${getApiKey()}`,
+      'Authorization': `Bearer ${getToken()}`,
       'Content-Type': 'application/json',
       ...options?.headers,
     },
@@ -24,7 +50,8 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (res.status === 401) {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('cronhive_api_key')
+      localStorage.removeItem('cronhive_token')
+      localStorage.removeItem('cronhive_user')
       window.dispatchEvent(new Event('cronhive:unauthorized'))
     }
     throw new Error('Unauthorized')
@@ -97,7 +124,7 @@ export const api = {
     get: (id: string) => apiFetch<Run & { log_url?: string }>(`/runs/${id}`),
     logs: (id: string): Promise<string | { log_url: string } | { message: string }> =>
       fetch(`${API_BASE}/api/v1/runs/${id}/logs`, {
-        headers: { Authorization: `Bearer ${getApiKey()}` },
+        headers: { Authorization: `Bearer ${getToken()}` },
       }).then(r => r.headers.get('content-type')?.includes('text/plain') ? r.text() : r.json()),
   },
   keys: {
