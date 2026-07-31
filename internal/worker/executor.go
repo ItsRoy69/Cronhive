@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/ItsRoy69/cronhive/internal/metrics"
 )
 
 type runDetails struct {
@@ -48,7 +50,7 @@ func (w *Worker) claimAndRun(ctx context.Context) bool {
 
 	run, err := w.loadRun(ctx, runID)
 	if err != nil {
-		log.Printf("failed to load run %s: %v", runID, err)
+		slog.Error("failed to load run", "run_id", runID, "err", err)
 		return false
 	}
 
@@ -81,8 +83,7 @@ func (w *Worker) loadRun(ctx context.Context, runID string) (*runDetails, error)
 }
 
 func (w *Worker) execute(ctx context.Context, run *runDetails) {
-	log.Printf("executing run %s (attempt %d) → %s %s",
-		run.ID, run.Attempt, run.HTTPMethod, run.HTTPURL)
+	slog.Info("executing run", "run_id", run.ID, "attempt", run.Attempt, "url", run.HTTPURL)
 
 	w.updateStatus(ctx, run.ID, "running", "")
 
@@ -121,7 +122,7 @@ func (w *Worker) execute(ctx context.Context, run *runDetails) {
 	}
 	defer resp.Body.Close()
 
-	body, _ := io.ReadAll(io.LimitReader(resp.Body, 64*1024))
+	body, _ := io.ReadAll(io.LimitReader(resp.Body, 1*1024*1024)) // 1 MB max read
 
 	if resp.StatusCode >= 400 {
 		w.handleFailure(ctx, run, fmt.Sprintf("http %d: %s",
@@ -129,7 +130,7 @@ func (w *Worker) execute(ctx context.Context, run *runDetails) {
 		return
 	}
 
-	w.handleSuccess(ctx, run.ID, resp.StatusCode, durationMs, body)
+	w.handleSuccess(ctx, run, resp.StatusCode, durationMs, body)
 }
 
 func (w *Worker) updateStatus(ctx context.Context, runID, status, errMsg string) {
@@ -142,34 +143,57 @@ func (w *Worker) updateStatus(ctx context.Context, runID, status, errMsg string)
 		WHERE id = $3
 	`, status, errMsg, runID)
 	if err != nil {
-		log.Printf("failed to update run status: %v", err)
+		slog.Error("failed to update run status", "err", err)
 	}
 }
 
-func (w *Worker) handleSuccess(ctx context.Context, runID string, httpStatus, durationMs int, body []byte) {
-	log.Printf("run %s succeeded (%d) in %dms", runID, httpStatus, durationMs)
+func (w *Worker) handleSuccess(ctx context.Context, run *runDetails, httpStatus, durationMs int, body []byte) {
+	slog.Info("run succeeded", "run_id", run.ID, "http_status", httpStatus, "duration_ms", durationMs)
+
+	metrics.RunsTotal.WithLabelValues("success").Inc()
+	metrics.RunDurationMs.WithLabelValues("success").Observe(float64(durationMs))
+
+	var logInline []byte
+	var logURL *string
+
+	if w.uploader != nil && len(body) > 10*1024 {
+		key := fmt.Sprintf("runs/%s/response.txt", run.ID)
+		url, err := w.uploader.Upload(ctx, key, body)
+		if err != nil {
+			slog.Error("s3 upload failed, storing inline", "err", err)
+			logInline = truncateBytes(body, 64*1024)
+		} else {
+			logURL = &url
+		}
+	} else {
+		logInline = truncateBytes(body, 64*1024)
+	}
+
 	_, err := w.db.Exec(ctx, `
 		UPDATE runs SET
 			status = 'success',
 			http_status = $1,
 			duration_ms = $2,
 			log_inline = $3,
+			log_url = $4,
 			finished_at = now()
-		WHERE id = $4
-	`, httpStatus, durationMs, body, runID)
+		WHERE id = $5
+	`, httpStatus, durationMs, logInline, logURL, run.ID)
 	if err != nil {
-		log.Printf("failed to save success: %v", err)
+		slog.Error("failed to save success", "err", err)
 	}
 
-	w.notifyEvent(ctx, runID, "run.success")
+	w.notifyEvent(ctx, run.ID, "run.success")
 }
 
 func (w *Worker) handleFailure(ctx context.Context, run *runDetails, errMsg string) {
-	log.Printf("run %s failed (attempt %d): %s", run.ID, run.Attempt, errMsg)
+	slog.Warn("run failed", "run_id", run.ID, "attempt", run.Attempt, "err", errMsg)
 
 	if run.Attempt < run.MaxRetries {
 		delay := backoffDelay(run.RetryBackoff, run.Attempt)
 		visibleAt := time.Now().Add(delay)
+
+		metrics.RunsTotal.WithLabelValues("retry").Inc()
 
 		_, err := w.db.Exec(ctx, `
 			UPDATE runs SET
@@ -180,7 +204,7 @@ func (w *Worker) handleFailure(ctx context.Context, run *runDetails, errMsg stri
 			WHERE id = $2
 		`, errMsg, run.ID)
 		if err != nil {
-			log.Printf("failed to update run for retry: %v", err)
+			slog.Error("failed to update run for retry", "err", err)
 			return
 		}
 
@@ -189,14 +213,15 @@ func (w *Worker) handleFailure(ctx context.Context, run *runDetails, errMsg stri
 			VALUES ($1, 0, $2)
 		`, run.ID, visibleAt)
 		if err != nil {
-			log.Printf("failed to requeue run: %v", err)
+			slog.Error("failed to requeue run", "err", err)
 		}
 
-		log.Printf("run %s requeued (%s backoff), retrying at %s", run.ID, run.RetryBackoff, visibleAt.Format(time.RFC3339))
+		slog.Info("run requeued", "run_id", run.ID, "backoff", run.RetryBackoff, "retry_at", visibleAt.Format(time.RFC3339))
 		w.notifyEvent(ctx, run.ID, "run.failure")
 		return
 	}
 
+	metrics.RunsTotal.WithLabelValues("dead").Inc()
 	w.updateStatus(ctx, run.ID, "dead", errMsg)
 	w.notifyEvent(ctx, run.ID, "run.dead")
 }
@@ -207,7 +232,7 @@ func backoffDelay(strategy string, attempt int) time.Duration {
 		return 30 * time.Second
 	case "linear":
 		return time.Duration(30*(attempt+1)) * time.Second
-	default: 
+	default: // exponential
 		return time.Duration(30*(1<<attempt)) * time.Second
 	}
 }
@@ -220,7 +245,7 @@ func (w *Worker) notifyEvent(ctx context.Context, runID, event string) {
 		)::text)
 	`, event, runID)
 	if err != nil {
-		log.Printf("notify error: %v", err)
+		slog.Error("notify error", "err", err)
 	}
 }
 
@@ -229,4 +254,11 @@ func truncate(s string, n int) string {
 		return s
 	}
 	return s[:n] + "..."
+}
+
+func truncateBytes(b []byte, n int) []byte {
+	if len(b) <= n {
+		return b
+	}
+	return b[:n]
 }

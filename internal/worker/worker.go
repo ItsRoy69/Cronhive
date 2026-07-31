@@ -2,10 +2,11 @@ package worker
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
+	"github.com/ItsRoy69/cronhive/internal/storage"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -14,28 +15,32 @@ type Worker struct {
 	httpClient *http.Client
 	concurrent int
 	sem        chan struct{}
+	uploader   *storage.S3Uploader
 }
 
 func New(db *pgxpool.Pool, concurrent int) *Worker {
 	return &Worker{
-		db: db,
-		httpClient: &http.Client{
-			Timeout: 120 * time.Second,
-		},
+		db:         db,
+		httpClient: &http.Client{Timeout: 120 * time.Second},
 		concurrent: concurrent,
 		sem:        make(chan struct{}, concurrent),
 	}
 }
 
+func (w *Worker) WithUploader(u *storage.S3Uploader) *Worker {
+	w.uploader = u
+	return w
+}
+
 func (w *Worker) Run(ctx context.Context) {
-	log.Println("worker starting...")
+	slog.Info("worker starting")
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
-			log.Println("worker stopping")
+			slog.Info("worker stopping")
 			return
 		case <-ticker.C:
 			w.drain(ctx)

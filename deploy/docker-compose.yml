@@ -15,15 +15,44 @@ services:
       timeout: 5s
       retries: 5
 
-  redis:
-    image: redis:7-alpine
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgres://postgres:dev@postgres:5432/cronhive
+      PORT: "8080"
+      ENVIRONMENT: production
     ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  scheduler:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    entrypoint: ["./bin/scheduler"]
+    environment:
+      DATABASE_URL: postgres://postgres:dev@postgres:5432/cronhive
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    entrypoint: ["./bin/worker"]
+    environment:
+      DATABASE_URL: postgres://postgres:dev@postgres:5432/cronhive
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   pgdata:
