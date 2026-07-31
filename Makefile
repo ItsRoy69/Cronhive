@@ -1,8 +1,12 @@
-.PHONY: dev migrate seed serve test lint build build-all docker-up
+.PHONY: dev dev-full migrate seed serve test lint build build-all docker-up
 
 dev:
 	docker compose -f deploy/docker-compose.yml up -d postgres
 	go run ./cmd/server serve
+
+dev-full:
+	docker compose -f deploy/docker-compose.yml up -d postgres minio
+	S3_ENDPOINT=http://localhost:9000 go run ./cmd/server serve
 
 migrate:
 	go run ./cmd/server migrate

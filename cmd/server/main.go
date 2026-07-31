@@ -8,12 +8,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/ItsRoy69/cronhive/internal/alerter"
 	"github.com/ItsRoy69/cronhive/internal/api"
 	"github.com/ItsRoy69/cronhive/internal/config"
+	"github.com/ItsRoy69/cronhive/internal/metrics"
 	"github.com/ItsRoy69/cronhive/internal/scheduler"
 	"github.com/ItsRoy69/cronhive/internal/storage"
 	"github.com/ItsRoy69/cronhive/internal/store"
@@ -83,6 +85,8 @@ func runServe(ctx context.Context, cancel context.CancelFunc, cfg *config.Config
 	defer pool.Close()
 	slog.Info("connected to database")
 
+	metrics.StartQueueDepthPoller(ctx, pool)
+
 	if err := store.Seed(ctx, pool); err != nil {
 		slog.Warn("seed warning", "err", err)
 	}
@@ -107,13 +111,15 @@ func runServe(ctx context.Context, cancel context.CancelFunc, cfg *config.Config
 
 	h := api.NewHandler(pool, sched)
 
+	allowedOrigins := strings.Split(cfg.AllowedOrigins, ",")
+
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
@@ -121,6 +127,11 @@ func runServe(ctx context.Context, cancel context.CancelFunc, cfg *config.Config
 	}))
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		if err := pool.Ping(r.Context()); err != nil {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			w.Write([]byte(`{"status":"unhealthy","error":"db unreachable"}`))
+			return
+		}
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"status":"ok"}`))
 	})
@@ -128,6 +139,7 @@ func runServe(ctx context.Context, cancel context.CancelFunc, cfg *config.Config
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Use(api.AuthMiddleware(pool))
+		r.Use(api.RateLimitMiddleware(cfg.RateLimitRPS))
 
 		r.Route("/jobs", func(r chi.Router) {
 			r.Get("/", h.ListJobs)
@@ -152,6 +164,12 @@ func runServe(ctx context.Context, cancel context.CancelFunc, cfg *config.Config
 			r.Get("/{configID}", h.GetAlertConfig)
 			r.Put("/{configID}", h.UpdateAlertConfig)
 			r.Delete("/{configID}", h.DeleteAlertConfig)
+		})
+
+		r.Route("/keys", func(r chi.Router) {
+			r.Get("/", h.ListAPIKeys)
+			r.Post("/", h.CreateAPIKey)
+			r.Delete("/{keyID}", h.RevokeAPIKey)
 		})
 	})
 

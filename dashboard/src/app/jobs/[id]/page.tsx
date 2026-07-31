@@ -1,6 +1,6 @@
 'use client'
 
-import { use } from 'react'
+import { use, useState } from 'react'
 import useSWR from 'swr'
 import { api } from '@/lib/api'
 import { formatDate, formatDuration, statusColor, timeAgo } from '@/lib/utils'
@@ -25,6 +25,8 @@ import {
   Cell,
 } from 'recharts'
 import Link from 'next/link'
+import { EditJobDialog } from '@/components/edit-job-dialog'
+import { RunLogsDialog } from '@/components/run-logs-dialog'
 
 export default function JobDetailPage({
   params,
@@ -32,6 +34,9 @@ export default function JobDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = use(params)
+
+  const [editing, setEditing] = useState(false)
+  const [logsRunId, setLogsRunId] = useState<string | null>(null)
 
   const { data: job, mutate: mutateJob } = useSWR(
     `job-${id}`,
@@ -93,6 +98,9 @@ export default function JobDetailPage({
             <div className="flex gap-2">
               <Button variant="outline" onClick={handleTrigger}>
                 Trigger now
+              </Button>
+              <Button variant="outline" onClick={() => setEditing(true)}>
+                Edit
               </Button>
               <Button variant="outline" onClick={handlePause}>
                 {job.status === 'active' ? 'Pause' : 'Resume'}
@@ -196,6 +204,7 @@ export default function JobDetailPage({
               <TableHead>Duration</TableHead>
               <TableHead>Started</TableHead>
               <TableHead>Error</TableHead>
+              <TableHead>Logs</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -219,12 +228,17 @@ export default function JobDetailPage({
                 <TableCell className="text-sm text-destructive max-w-xs truncate">
                   {run.error_msg ?? '—'}
                 </TableCell>
+                <TableCell>
+                  <Button variant="ghost" size="sm" onClick={() => setLogsRunId(run.id)}>
+                    Logs
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
             {runs?.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="text-center text-muted-foreground py-8"
                 >
                   No runs yet
@@ -234,6 +248,16 @@ export default function JobDetailPage({
           </TableBody>
         </Table>
       </Card>
+
+      {job && (
+        <EditJobDialog
+          job={job}
+          open={editing}
+          onClose={() => setEditing(false)}
+          onUpdated={() => { setEditing(false); mutateJob() }}
+        />
+      )}
+      <RunLogsDialog runId={logsRunId} onClose={() => setLogsRunId(null)} />
     </div>
   )
 }

@@ -3,6 +3,9 @@ package alerter
 import (
 	"bytes"
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -38,6 +41,7 @@ type alertConfig struct {
 	OnFailure  bool
 	OnDead     bool
 	OnRecovery bool
+	OnSuccess  bool
 	SlackURL   *string
 	Email      *string
 	WebhookURL *string
@@ -104,6 +108,10 @@ func (a *Alerter) handleEvent(ctx context.Context, event runEvent) {
 			if !cfg.OnRecovery {
 				continue
 			}
+		case "run.success":
+			if !cfg.OnSuccess {
+				continue
+			}
 		}
 
 		if cfg.SlackURL != nil {
@@ -135,7 +143,7 @@ func (a *Alerter) isRecovery(ctx context.Context, runID string) bool {
 
 func (a *Alerter) loadConfigs(ctx context.Context, runID string) ([]alertConfig, error) {
 	rows, err := a.db.Query(ctx, `
-		SELECT ac.on_failure, ac.on_dead, ac.on_recovery,
+		SELECT ac.on_failure, ac.on_dead, ac.on_recovery, ac.on_success,
 		       ac.slack_url, ac.email, ac.webhook_url
 		FROM alert_configs ac
 		JOIN runs r ON r.tenant_id = ac.tenant_id
@@ -151,7 +159,7 @@ func (a *Alerter) loadConfigs(ctx context.Context, runID string) ([]alertConfig,
 	for rows.Next() {
 		var cfg alertConfig
 		if err := rows.Scan(
-			&cfg.OnFailure, &cfg.OnDead, &cfg.OnRecovery,
+			&cfg.OnFailure, &cfg.OnDead, &cfg.OnRecovery, &cfg.OnSuccess,
 			&cfg.SlackURL, &cfg.Email, &cfg.WebhookURL,
 		); err != nil {
 			continue
@@ -192,6 +200,30 @@ func (a *Alerter) sendSlack(ctx context.Context, webhookURL string, event runEve
 
 func (a *Alerter) sendWebhook(ctx context.Context, webhookURL string, event runEvent) {
 	body, _ := json.Marshal(event)
+
+	if a.cfg.WebhookSecret != "" {
+		mac := hmac.New(sha256.New, []byte(a.cfg.WebhookSecret))
+		mac.Write(body)
+		sig := "sha256=" + hex.EncodeToString(mac.Sum(nil))
+
+		req, err := http.NewRequestWithContext(ctx, "POST", webhookURL, bytes.NewReader(body))
+		if err != nil {
+			return
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Cronhive-Event", event.Event)
+		req.Header.Set("X-Cronhive-Signature", sig)
+
+		resp, err := a.httpClient.Do(req)
+		if err != nil {
+			slog.Error("webhook send error", "err", err)
+			return
+		}
+		defer resp.Body.Close()
+		slog.Info("webhook alert sent", "run_id", event.RunID, "status", resp.StatusCode)
+		return
+	}
+
 	req, err := http.NewRequestWithContext(ctx, "POST", webhookURL, bytes.NewReader(body))
 	if err != nil {
 		return

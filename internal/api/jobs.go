@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/ItsRoy69/cronhive/internal/scheduler"
@@ -10,6 +11,18 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+func parsePageParams(r *http.Request) (limit, offset int) {
+	limit, _ = strconv.Atoi(r.URL.Query().Get("limit"))
+	offset, _ = strconv.Atoi(r.URL.Query().Get("offset"))
+	if limit <= 0 || limit > 200 {
+		limit = 50
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	return
+}
 
 type Handler struct {
 	db   *pgxpool.Pool
@@ -22,6 +35,7 @@ func NewHandler(db *pgxpool.Pool, sched *scheduler.Scheduler) *Handler {
 
 func (h *Handler) ListJobs(w http.ResponseWriter, r *http.Request) {
 	tenantID := r.Context().Value(tenantKey).(string)
+	limit, offset := parsePageParams(r)
 
 	rows, err := h.db.Query(r.Context(), `
 		SELECT id, name, cron_expr, timezone, http_url, http_method,
@@ -29,7 +43,8 @@ func (h *Handler) ListJobs(w http.ResponseWriter, r *http.Request) {
 		FROM jobs
 		WHERE tenant_id = $1
 		ORDER BY created_at DESC
-	`, tenantID)
+		LIMIT $2 OFFSET $3
+	`, tenantID, limit, offset)
 	if err != nil {
 		jsonError(w, "failed to list jobs", 500)
 		return
@@ -241,6 +256,7 @@ func (h *Handler) TriggerJob(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListRuns(w http.ResponseWriter, r *http.Request) {
 	tenantID := r.Context().Value(tenantKey).(string)
 	jobID := chi.URLParam(r, "jobID")
+	limit, offset := parsePageParams(r)
 
 	rows, err := h.db.Query(r.Context(), `
 		SELECT id, status, attempt, http_status, duration_ms,
@@ -248,8 +264,8 @@ func (h *Handler) ListRuns(w http.ResponseWriter, r *http.Request) {
 		FROM runs
 		WHERE job_id = $1 AND tenant_id = $2
 		ORDER BY created_at DESC
-		LIMIT 50
-	`, jobID, tenantID)
+		LIMIT $3 OFFSET $4
+	`, jobID, tenantID, limit, offset)
 	if err != nil {
 		jsonError(w, "failed to list runs", 500)
 		return

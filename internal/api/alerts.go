@@ -63,6 +63,7 @@ func (h *Handler) CreateAlertConfig(w http.ResponseWriter, r *http.Request) {
 		OnFailure  *bool   `json:"on_failure"`
 		OnDead     *bool   `json:"on_dead"`
 		OnRecovery *bool   `json:"on_recovery"`
+		OnSuccess  *bool   `json:"on_success"`
 		SlackURL   *string `json:"slack_url"`
 		Email      *string `json:"email"`
 		WebhookURL *string `json:"webhook_url"`
@@ -85,12 +86,16 @@ func (h *Handler) CreateAlertConfig(w http.ResponseWriter, r *http.Request) {
 	if body.OnRecovery != nil {
 		onRecovery = *body.OnRecovery
 	}
+	onSuccess := false
+	if body.OnSuccess != nil {
+		onSuccess = *body.OnSuccess
+	}
 
 	id := uuid.New().String()
 	_, err := h.db.Exec(r.Context(), `
-		INSERT INTO alert_configs (id, tenant_id, job_id, on_failure, on_dead, on_recovery, slack_url, email, webhook_url)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-	`, id, tenantID, body.JobID, onFailure, onDead, onRecovery, body.SlackURL, body.Email, body.WebhookURL)
+		INSERT INTO alert_configs (id, tenant_id, job_id, on_failure, on_dead, on_recovery, slack_url, email, webhook_url, on_success)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+	`, id, tenantID, body.JobID, onFailure, onDead, onRecovery, body.SlackURL, body.Email, body.WebhookURL, onSuccess)
 	if err != nil {
 		jsonError(w, "failed to create alert config", 500)
 		return
@@ -141,6 +146,7 @@ func (h *Handler) UpdateAlertConfig(w http.ResponseWriter, r *http.Request) {
 		OnFailure  *bool   `json:"on_failure"`
 		OnDead     *bool   `json:"on_dead"`
 		OnRecovery *bool   `json:"on_recovery"`
+		OnSuccess  *bool   `json:"on_success"`
 		SlackURL   *string `json:"slack_url"`
 		Email      *string `json:"email"`
 		WebhookURL *string `json:"webhook_url"`
@@ -158,9 +164,10 @@ func (h *Handler) UpdateAlertConfig(w http.ResponseWriter, r *http.Request) {
 			on_recovery = COALESCE($3, on_recovery),
 			slack_url   = COALESCE($4, slack_url),
 			email       = COALESCE($5, email),
-			webhook_url = COALESCE($6, webhook_url)
-		WHERE id = $7 AND tenant_id = $8
-	`, body.OnFailure, body.OnDead, body.OnRecovery, body.SlackURL, body.Email, body.WebhookURL, configID, tenantID)
+			webhook_url = COALESCE($6, webhook_url),
+			on_success  = COALESCE($7, on_success)
+		WHERE id = $8 AND tenant_id = $9
+	`, body.OnFailure, body.OnDead, body.OnRecovery, body.SlackURL, body.Email, body.WebhookURL, body.OnSuccess, configID, tenantID)
 	if err != nil {
 		jsonError(w, "failed to update alert config", 500)
 		return

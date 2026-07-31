@@ -71,6 +71,20 @@ export const api = {
     resume: (id: string) => apiFetch<{ status: string }>(`/jobs/${id}/resume`, { method: 'POST' }),
     trigger: (id: string) => apiFetch<{ run_id: string }>(`/jobs/${id}/trigger`, { method: 'POST' }),
     runs: (id: string) => apiFetch<Run[]>(`/jobs/${id}/runs`),
+    update: (id: string, data: Partial<Job>) =>
+      apiFetch<{ status: string }>(`/jobs/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  },
+  runs: {
+    get: (id: string) => apiFetch<Run & { log_url?: string }>(`/runs/${id}`),
+    logs: (id: string): Promise<string | { log_url: string } | { message: string }> =>
+      fetch(`${API_BASE}/api/v1/runs/${id}/logs`, {
+        headers: { Authorization: `Bearer ${API_KEY}` },
+      }).then(r => r.headers.get('content-type')?.includes('text/plain') ? r.text() : r.json()),
+  },
+  keys: {
+    list: () => apiFetch<{ id: string; label: string; last_used: string | null; created_at: string }[]>('/keys'),
+    create: (label: string) => apiFetch<{ id: string; key: string }>('/keys', { method: 'POST', body: JSON.stringify({ label }) }),
+    revoke: (id: string) => apiFetch<void>(`/keys/${id}`, { method: 'DELETE' }),
   },
   alerts: {
     list: () => apiFetch<AlertConfig[]>('/alerts'),
