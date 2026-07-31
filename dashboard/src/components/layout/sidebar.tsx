@@ -2,16 +2,19 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Bell } from 'lucide-react'
+import { LayoutDashboard, Bell, KeyRound, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/components/auth-provider'
 
 const navItems = [
   { href: '/', label: 'Jobs', icon: LayoutDashboard },
   { href: '/alerts', label: 'Alerts', icon: Bell },
+  { href: '/keys', label: 'API Keys', icon: KeyRound },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { logout } = useAuth()
 
   return (
     <aside className="w-[240px] shrink-0 flex flex-col h-screen bg-sidebar border-r border-sidebar-border">
@@ -53,15 +56,24 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="px-5 py-4 border-t border-sidebar-border flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <span className="relative flex size-1.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-            <span className="relative inline-flex rounded-full size-1.5 bg-amber-500" />
-          </span>
-          <span className="text-xs text-muted-foreground">Live</span>
+      <div className="px-3 py-4 border-t border-sidebar-border space-y-1">
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-1.5">
+            <span className="relative flex size-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+              <span className="relative inline-flex rounded-full size-1.5 bg-amber-500" />
+            </span>
+            <span className="text-xs text-muted-foreground">Live</span>
+          </div>
+          <span className="text-[11px] text-muted-foreground">v0.1.0</span>
         </div>
-        <span className="text-[11px] text-muted-foreground">v0.1.0</span>
+        <button
+          onClick={logout}
+          className="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-sidebar-foreground hover:bg-white/5 transition-colors w-full"
+        >
+          <LogOut className="size-4 shrink-0" />
+          Sign out
+        </button>
       </div>
     </aside>
   )

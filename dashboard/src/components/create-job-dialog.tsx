@@ -50,8 +50,8 @@ export function CreateJobDialog({ open, onClose, onCreated }: Props) {
         timeout_secs: 30,
         max_retries: 3,
       })
-    } catch (e: any) {
-      setError(e.message)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to create job')
     } finally {
       setLoading(false)
     }
@@ -59,7 +59,7 @@ export function CreateJobDialog({ open, onClose, onCreated }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-w-md bg-card border-border">
         <DialogHeader>
           <DialogTitle>New Job</DialogTitle>
         </DialogHeader>

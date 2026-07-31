@@ -1,15 +1,34 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081'
-const API_KEY = process.env.NEXT_PUBLIC_API_KEY || 'ch_dev_key_cronhive_local'
+
+function getApiKey(): string {
+  if (typeof window === 'undefined') return ''
+  return localStorage.getItem('cronhive_api_key') || ''
+}
+
+export async function validateKey(key: string): Promise<boolean> {
+  const res = await fetch(`${API_BASE}/api/v1/jobs`, {
+    headers: { 'Authorization': `Bearer ${key}` },
+  })
+  return res.ok
+}
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}/api/v1${path}`, {
     ...options,
     headers: {
-      'Authorization': `Bearer ${API_KEY}`,
+      'Authorization': `Bearer ${getApiKey()}`,
       'Content-Type': 'application/json',
       ...options?.headers,
     },
   })
+
+  if (res.status === 401) {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('cronhive_api_key')
+      window.dispatchEvent(new Event('cronhive:unauthorized'))
+    }
+    throw new Error('Unauthorized')
+  }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'unknown error' }))
@@ -78,7 +97,7 @@ export const api = {
     get: (id: string) => apiFetch<Run & { log_url?: string }>(`/runs/${id}`),
     logs: (id: string): Promise<string | { log_url: string } | { message: string }> =>
       fetch(`${API_BASE}/api/v1/runs/${id}/logs`, {
-        headers: { Authorization: `Bearer ${API_KEY}` },
+        headers: { Authorization: `Bearer ${getApiKey()}` },
       }).then(r => r.headers.get('content-type')?.includes('text/plain') ? r.text() : r.json()),
   },
   keys: {

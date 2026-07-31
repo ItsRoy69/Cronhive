@@ -15,22 +15,8 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { CreateJobDialog } from '@/components/create-job-dialog'
+import { StatusDot } from '@/components/ui/status-dot'
 import { Layers, PlayCircle, PauseCircle, MoreHorizontal, Clock, Zap, Timer } from 'lucide-react'
-
-function StatusDot({ status }: { status: string }) {
-  const config: Record<string, { color: string; label: string }> = {
-    active:  { color: 'bg-green-500',  label: 'Active'  },
-    paused:  { color: 'bg-yellow-500', label: 'Paused'  },
-    deleted: { color: 'bg-zinc-600',   label: 'Deleted' },
-  }
-  const { color, label } = config[status] ?? { color: 'bg-zinc-600', label: status }
-  return (
-    <span className="flex items-center gap-1.5">
-      <span className={`size-1.5 rounded-full shrink-0 ${color}`} />
-      <span className="text-sm">{label}</span>
-    </span>
-  )
-}
 
 export default function HomePage() {
   const { data: jobs, error, mutate } = useSWR('jobs', api.jobs.list, { refreshInterval: 5000 })
