@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use, useState, useMemo } from 'react'
 import useSWR from 'swr'
 import Link from 'next/link'
 import { api } from '@/lib/api'
@@ -16,7 +16,7 @@ import {
 import { EditJobDialog } from '@/components/edit-job-dialog'
 import { RunLogsDialog } from '@/components/run-logs-dialog'
 import { StatusDot } from '@/components/ui/status-dot'
-import { ChevronRight, Zap, Pencil, Globe, Clock, CalendarClock, Hash } from 'lucide-react'
+import { ChevronRight, Zap, Pencil, Clock, CalendarClock, Hash, TrendingUp, Timer } from 'lucide-react'
 
 export default function JobDetailPage({
   params,
@@ -39,6 +39,22 @@ export default function JobDetailPage({
     () => api.jobs.runs(id),
     { refreshInterval: 5000 }
   )
+
+  const successRate = useMemo(() => {
+    if (!runs || runs.length === 0) return null
+    const finished = runs.filter(r => ['success', 'failed', 'dead'].includes(r.status))
+    if (finished.length === 0) return null
+    const ok = finished.filter(r => r.status === 'success').length
+    return Math.round((ok / finished.length) * 100)
+  }, [runs])
+
+  const avgDuration = useMemo(() => {
+    if (!runs) return null
+    const withDur = runs.filter(r => r.duration_ms != null)
+    if (withDur.length === 0) return null
+    const avg = withDur.reduce((sum, r) => sum + (r.duration_ms ?? 0), 0) / withDur.length
+    return Math.round(avg)
+  }, [runs])
 
   const handleTrigger = async () => {
     await api.jobs.trigger(id)
@@ -78,6 +94,9 @@ export default function JobDetailPage({
                   {job.cron_expr}
                 </code>
                 <span className="text-xs text-muted-foreground">{job.timezone}</span>
+                <span className="text-xs text-muted-foreground truncate max-w-xs">
+                  {job.http_method} {job.http_url}
+                </span>
               </div>
             </div>
             <div className="flex gap-2 shrink-0">
@@ -114,15 +133,6 @@ export default function JobDetailPage({
           <div className="grid grid-cols-4 gap-4 mb-8">
             <Card className="bg-card border-border">
               <CardHeader className="pb-1 flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-xs font-medium text-muted-foreground">HTTP URL</CardTitle>
-                <Globe className="size-3.5 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm font-medium truncate" title={job.http_url}>{job.http_url}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card border-border">
-              <CardHeader className="pb-1 flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-xs font-medium text-muted-foreground">Last Run</CardTitle>
                 <Clock className="size-3.5 text-muted-foreground" />
               </CardHeader>
@@ -141,11 +151,28 @@ export default function JobDetailPage({
             </Card>
             <Card className="bg-card border-border">
               <CardHeader className="pb-1 flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-xs font-medium text-muted-foreground">Total Runs</CardTitle>
-                <Hash className="size-3.5 text-muted-foreground" />
+                <CardTitle className="text-xs font-medium text-muted-foreground">Success Rate</CardTitle>
+                <TrendingUp className="size-3.5 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <p className="text-sm font-medium">{runs?.length ?? '—'}</p>
+                <p className={`text-sm font-medium ${
+                  successRate === null ? '' :
+                  successRate >= 90 ? 'text-green-400' :
+                  successRate >= 70 ? 'text-yellow-400' : 'text-red-400'
+                }`}>
+                  {successRate === null ? '—' : `${successRate}%`}
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="bg-card border-border">
+              <CardHeader className="pb-1 flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-xs font-medium text-muted-foreground">Avg Duration</CardTitle>
+                <Timer className="size-3.5 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm font-medium">
+                  {avgDuration === null ? '—' : formatDuration(avgDuration)}
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -154,8 +181,20 @@ export default function JobDetailPage({
           {chartData && chartData.length > 0 && (
             <Card className="mb-8 bg-card border-border">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Execution Duration</CardTitle>
-                <p className="text-xs text-muted-foreground">Last 20 runs</p>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium">Execution Duration</CardTitle>
+                  <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                    <span className="flex items-center gap-1.5">
+                      <span className="size-2 rounded-[1px] bg-amber-500/80 inline-block" />
+                      Success
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="size-2 rounded-[1px] bg-red-500/80 inline-block" />
+                      Failed
+                    </span>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">Last {chartData.length} runs</p>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={140}>
@@ -205,8 +244,12 @@ export default function JobDetailPage({
 
       {/* Run History */}
       <Card className="bg-card border-border overflow-hidden">
-        <CardHeader className="pb-0">
+        <CardHeader className="pb-0 flex-row items-center justify-between">
           <CardTitle className="text-sm font-medium">Run History</CardTitle>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Hash className="size-3" />
+            {runs?.length ?? '—'} total
+          </div>
         </CardHeader>
         <Table>
           <TableHeader>

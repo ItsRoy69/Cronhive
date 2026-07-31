@@ -5,12 +5,12 @@ import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
+import { CronPreview } from '@/components/cron-preview'
 
 interface Props {
   open: boolean
@@ -18,18 +18,31 @@ interface Props {
   onCreated: () => void
 }
 
+const TIMEZONES = [
+  'UTC',
+  'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
+  'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Moscow',
+  'Asia/Tokyo', 'Asia/Shanghai', 'Asia/Kolkata', 'Asia/Dubai',
+  'Australia/Sydney',
+]
+
+const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+
 export function CreateJobDialog({ open, onClose, onCreated }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({
     name: '',
-    cron_expr: '* * * * *',
+    cron_expr: '*/5 * * * *',
     http_url: '',
     http_method: 'POST',
     timezone: 'UTC',
     timeout_secs: 30,
     max_retries: 3,
   })
+
+  const setField = <K extends keyof typeof form>(k: K) => (v: (typeof form)[K]) =>
+    setForm(f => ({ ...f, [k]: v }))
 
   const handleSubmit = async () => {
     setError('')
@@ -42,13 +55,8 @@ export function CreateJobDialog({ open, onClose, onCreated }: Props) {
       await api.jobs.create(form)
       onCreated()
       setForm({
-        name: '',
-        cron_expr: '* * * * *',
-        http_url: '',
-        http_method: 'POST',
-        timezone: 'UTC',
-        timeout_secs: 30,
-        max_retries: 3,
+        name: '', cron_expr: '*/5 * * * *', http_url: '',
+        http_method: 'POST', timezone: 'UTC', timeout_secs: 30, max_retries: 3,
       })
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to create job')
@@ -70,7 +78,7 @@ export function CreateJobDialog({ open, onClose, onCreated }: Props) {
             <Input
               placeholder="send-weekly-report"
               value={form.name}
-              onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+              onChange={e => setField('name')(e.target.value)}
             />
           </div>
 
@@ -79,11 +87,10 @@ export function CreateJobDialog({ open, onClose, onCreated }: Props) {
             <Input
               placeholder="*/5 * * * *"
               value={form.cron_expr}
-              onChange={e => setForm(f => ({ ...f, cron_expr: e.target.value }))}
+              onChange={e => setField('cron_expr')(e.target.value)}
+              className="font-mono"
             />
-            <p className="text-xs text-muted-foreground">
-              Standard 5-field cron expression (minute hour dom month dow)
-            </p>
+            <CronPreview expr={form.cron_expr} />
           </div>
 
           <div className="space-y-1.5">
@@ -91,24 +98,32 @@ export function CreateJobDialog({ open, onClose, onCreated }: Props) {
             <Input
               placeholder="https://your-service.com/webhook"
               value={form.http_url}
-              onChange={e => setForm(f => ({ ...f, http_url: e.target.value }))}
+              onChange={e => setField('http_url')(e.target.value)}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Method</label>
-              <Input
-                value={form.http_method}
-                onChange={e => setForm(f => ({ ...f, http_method: e.target.value }))}
-              />
+              <Select value={form.http_method} onValueChange={setField('http_method')}>
+                <SelectTrigger className="w-full bg-muted/40 border-border h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {METHODS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Timezone</label>
-              <Input
-                value={form.timezone}
-                onChange={e => setForm(f => ({ ...f, timezone: e.target.value }))}
-              />
+              <Select value={form.timezone} onValueChange={setField('timezone')}>
+                <SelectTrigger className="w-full bg-muted/40 border-border h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIMEZONES.map(tz => <SelectItem key={tz} value={tz}>{tz}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -118,7 +133,7 @@ export function CreateJobDialog({ open, onClose, onCreated }: Props) {
               <Input
                 type="number"
                 value={form.timeout_secs}
-                onChange={e => setForm(f => ({ ...f, timeout_secs: +e.target.value }))}
+                onChange={e => setField('timeout_secs')(+e.target.value)}
               />
             </div>
             <div className="space-y-1.5">
@@ -126,7 +141,7 @@ export function CreateJobDialog({ open, onClose, onCreated }: Props) {
               <Input
                 type="number"
                 value={form.max_retries}
-                onChange={e => setForm(f => ({ ...f, max_retries: +e.target.value }))}
+                onChange={e => setField('max_retries')(+e.target.value)}
               />
             </div>
           </div>
@@ -136,8 +151,12 @@ export function CreateJobDialog({ open, onClose, onCreated }: Props) {
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading}>
-            {loading ? 'Creating...' : 'Create Job'}
+          <Button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="bg-amber-500 hover:bg-amber-400 text-black font-medium"
+          >
+            {loading ? 'Creating…' : 'Create Job'}
           </Button>
         </DialogFooter>
       </DialogContent>
