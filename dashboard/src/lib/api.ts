@@ -45,6 +45,18 @@ export type Run = {
   created_at: string
 }
 
+export type AlertConfig = {
+  id: string
+  job_id: string | null
+  on_failure: boolean
+  on_dead: boolean
+  on_recovery: boolean
+  slack_url: string | null
+  email: string | null
+  webhook_url: string | null
+  created_at: string
+}
+
 export const api = {
   jobs: {
     list: () => apiFetch<Job[]>('/jobs'),
@@ -59,5 +71,13 @@ export const api = {
     resume: (id: string) => apiFetch<{ status: string }>(`/jobs/${id}/resume`, { method: 'POST' }),
     trigger: (id: string) => apiFetch<{ run_id: string }>(`/jobs/${id}/trigger`, { method: 'POST' }),
     runs: (id: string) => apiFetch<Run[]>(`/jobs/${id}/runs`),
+  },
+  alerts: {
+    list: () => apiFetch<AlertConfig[]>('/alerts'),
+    create: (data: Partial<AlertConfig>) =>
+      apiFetch<{ id: string }>('/alerts', { method: 'POST', body: JSON.stringify(data) }),
+    delete: (id: string) => apiFetch<void>(`/alerts/${id}`, { method: 'DELETE' }),
+    update: (id: string, data: Partial<AlertConfig>) =>
+      apiFetch<{ status: string }>(`/alerts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   },
 }

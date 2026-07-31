@@ -53,7 +53,12 @@ export default function HomePage() {
             Distributed cron job scheduler
           </p>
         </div>
-        <Button onClick={() => setCreating(true)}>+ New Job</Button>
+        <div className="flex gap-2">
+          <Link href="/alerts">
+            <Button variant="outline">Alerts</Button>
+          </Link>
+          <Button onClick={() => setCreating(true)}>+ New Job</Button>
+        </div>
       </div>
 
       {error && (
