@@ -35,7 +35,7 @@ func Load() *Config {
 	rps, _ := strconv.Atoi(getEnv("RATE_LIMIT_RPS", "60"))
 
 	return &Config{
-		DatabaseURL:    getEnv("DATABASE_URL", "postgres://postgres:dev@localhost:5432/cronhive"),
+		DatabaseURL:    getEnv("DATABASE_URL", "postgres://postgres:dev@localhost:5432/cronhive?sslmode=disable"),
 		JWTSecret:      getEnv("JWT_SECRET", "dev-secret-change-in-production"),
 		Port:           getEnv("PORT", "8080"),
 		S3Endpoint:     getEnv("S3_ENDPOINT", ""),
