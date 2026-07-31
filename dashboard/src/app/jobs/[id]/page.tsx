@@ -2,31 +2,40 @@
 
 import { use, useState } from 'react'
 import useSWR from 'swr'
+import Link from 'next/link'
 import { api } from '@/lib/api'
-import { formatDate, formatDuration, statusColor, timeAgo } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
+import { formatDate, formatDuration, timeAgo } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts'
-import Link from 'next/link'
 import { EditJobDialog } from '@/components/edit-job-dialog'
 import { RunLogsDialog } from '@/components/run-logs-dialog'
+import { ChevronRight, Zap, Pencil, Globe, Clock, CalendarClock, Hash } from 'lucide-react'
+
+function StatusDot({ status }: { status: string }) {
+  const config: Record<string, { color: string; label: string }> = {
+    active:  { color: 'bg-green-500',  label: 'Active'   },
+    paused:  { color: 'bg-yellow-500', label: 'Paused'   },
+    deleted: { color: 'bg-zinc-600',   label: 'Deleted'  },
+    running: { color: 'bg-blue-500',   label: 'Running'  },
+    success: { color: 'bg-green-500',  label: 'Success'  },
+    failed:  { color: 'bg-red-500',    label: 'Failed'   },
+    dead:    { color: 'bg-red-500',    label: 'Dead'     },
+    queued:  { color: 'bg-blue-400',   label: 'Queued'   },
+  }
+  const { color, label } = config[status] ?? { color: 'bg-zinc-600', label: status }
+  return (
+    <span className="flex items-center gap-1.5">
+      <span className={`size-1.5 rounded-full shrink-0 ${color}`} />
+      <span className="text-sm">{label}</span>
+    </span>
+  )
+}
 
 export default function JobDetailPage({
   params,
@@ -56,11 +65,8 @@ export default function JobDetailPage({
   }
 
   const handlePause = async () => {
-    if (job?.status === 'active') {
-      await api.jobs.pause(id)
-    } else {
-      await api.jobs.resume(id)
-    }
+    if (job?.status === 'active') await api.jobs.pause(id)
+    else await api.jobs.resume(id)
     mutateJob()
   }
 
@@ -71,79 +77,91 @@ export default function JobDetailPage({
   }))
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <div className="mb-6">
-        <Link href="/" className="text-sm text-muted-foreground hover:underline">
-          ← All jobs
-        </Link>
+    <div className="p-8">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-1.5 mb-6 text-sm text-muted-foreground">
+        <Link href="/" className="hover:text-foreground transition-colors">Jobs</Link>
+        <ChevronRight className="size-3.5" />
+        <span className="text-foreground truncate max-w-xs">{job?.name ?? '…'}</span>
       </div>
 
       {job && (
         <>
-          <div className="flex items-start justify-between mb-6">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-8">
             <div>
-              <h1 className="text-2xl font-medium">{job.name}</h1>
-              <div className="flex items-center gap-3 mt-2">
-                <Badge variant={statusColor(job.status) as any}>
-                  {job.status}
-                </Badge>
-                <code className="text-xs bg-muted px-2 py-1 rounded">
+              <h1 className="text-xl font-semibold">{job.name}</h1>
+              <div className="flex items-center gap-3 mt-2 flex-wrap">
+                <StatusDot status={job.status} />
+                <code className="text-xs bg-muted/60 px-2 py-1 rounded font-mono border border-border">
                   {job.cron_expr}
                 </code>
-                <span className="text-sm text-muted-foreground">
-                  {job.timezone}
-                </span>
+                <span className="text-xs text-muted-foreground">{job.timezone}</span>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleTrigger}>
+            <div className="flex gap-2 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-border hover:bg-white/5"
+                onClick={handleTrigger}
+              >
+                <Zap className="size-3.5 mr-1.5" />
                 Trigger now
               </Button>
-              <Button variant="outline" onClick={() => setEditing(true)}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-border hover:bg-white/5"
+                onClick={() => setEditing(true)}
+              >
+                <Pencil className="size-3.5 mr-1.5" />
                 Edit
               </Button>
-              <Button variant="outline" onClick={handlePause}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-border hover:bg-white/5"
+                onClick={handlePause}
+              >
                 {job.status === 'active' ? 'Pause' : 'Resume'}
               </Button>
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            <Card>
-              <CardHeader className="pb-1">
-                <CardTitle className="text-xs font-normal text-muted-foreground">
-                  HTTP URL
-                </CardTitle>
+          {/* Stat Cards */}
+          <div className="grid grid-cols-4 gap-4 mb-8">
+            <Card className="bg-card border-border">
+              <CardHeader className="pb-1 flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-xs font-medium text-muted-foreground">HTTP URL</CardTitle>
+                <Globe className="size-3.5 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <p className="text-sm font-medium truncate">{job.http_url}</p>
+                <p className="text-sm font-medium truncate" title={job.http_url}>{job.http_url}</p>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader className="pb-1">
-                <CardTitle className="text-xs font-normal text-muted-foreground">
-                  Last run
-                </CardTitle>
+            <Card className="bg-card border-border">
+              <CardHeader className="pb-1 flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-xs font-medium text-muted-foreground">Last Run</CardTitle>
+                <Clock className="size-3.5 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <p className="text-sm font-medium">{timeAgo(job.last_run_at)}</p>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader className="pb-1">
-                <CardTitle className="text-xs font-normal text-muted-foreground">
-                  Next run
-                </CardTitle>
+            <Card className="bg-card border-border">
+              <CardHeader className="pb-1 flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-xs font-medium text-muted-foreground">Next Run</CardTitle>
+                <CalendarClock className="size-3.5 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <p className="text-sm font-medium">{formatDate(job.next_run_at)}</p>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader className="pb-1">
-                <CardTitle className="text-xs font-normal text-muted-foreground">
-                  Total runs
-                </CardTitle>
+            <Card className="bg-card border-border">
+              <CardHeader className="pb-1 flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-xs font-medium text-muted-foreground">Total Runs</CardTitle>
+                <Hash className="size-3.5 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <p className="text-sm font-medium">{runs?.length ?? '—'}</p>
@@ -151,22 +169,35 @@ export default function JobDetailPage({
             </Card>
           </div>
 
+          {/* Duration Chart */}
           {chartData && chartData.length > 0 && (
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="text-sm font-medium">
-                  Execution duration (last 20 runs)
-                </CardTitle>
+            <Card className="mb-8 bg-card border-border">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Execution Duration</CardTitle>
+                <p className="text-xs text-muted-foreground">Last 20 runs</p>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={160}>
-                  <BarChart data={chartData}>
-                    <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                <ResponsiveContainer width="100%" height={140}>
+                  <BarChart data={chartData} barCategoryGap="30%">
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fontSize: 10, fill: 'oklch(0.55 0 0)' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
                     <YAxis
-                      tick={{ fontSize: 11 }}
+                      tick={{ fontSize: 10, fill: 'oklch(0.55 0 0)' }}
                       tickFormatter={v => `${v}ms`}
+                      axisLine={false}
+                      tickLine={false}
                     />
                     <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'oklch(0.13 0 0)',
+                        border: '1px solid oklch(1 0 0 / 8%)',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                      }}
                       formatter={(v) => [`${v ?? 0}ms`, 'Duration']}
                     />
                     <Bar dataKey="duration" radius={[3, 3, 0, 0]}>
@@ -175,10 +206,10 @@ export default function JobDetailPage({
                           key={i}
                           fill={
                             entry.status === 'success'
-                              ? '#22c55e'
+                              ? '#f59e0b'
                               : entry.status === 'failed' || entry.status === 'dead'
                               ? '#ef4444'
-                              : '#94a3b8'
+                              : '#6b7280'
                           }
                         />
                       ))}
@@ -191,45 +222,43 @@ export default function JobDetailPage({
         </>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">Run history</CardTitle>
+      {/* Run History */}
+      <Card className="bg-card border-border overflow-hidden">
+        <CardHeader className="pb-0">
+          <CardTitle className="text-sm font-medium">Run History</CardTitle>
         </CardHeader>
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Status</TableHead>
-              <TableHead>Attempt</TableHead>
-              <TableHead>HTTP</TableHead>
-              <TableHead>Duration</TableHead>
-              <TableHead>Started</TableHead>
-              <TableHead>Error</TableHead>
-              <TableHead>Logs</TableHead>
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="text-muted-foreground font-medium">Status</TableHead>
+              <TableHead className="text-muted-foreground font-medium">Attempt</TableHead>
+              <TableHead className="text-muted-foreground font-medium">HTTP</TableHead>
+              <TableHead className="text-muted-foreground font-medium">Duration</TableHead>
+              <TableHead className="text-muted-foreground font-medium">Started</TableHead>
+              <TableHead className="text-muted-foreground font-medium">Error</TableHead>
+              <TableHead className="w-16" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {runs?.map(run => (
-              <TableRow key={run.id}>
+              <TableRow key={run.id} className="border-border hover:bg-white/[0.02]">
                 <TableCell>
-                  <Badge variant={statusColor(run.status) as any}>
-                    {run.status}
-                  </Badge>
+                  <StatusDot status={run.status} />
                 </TableCell>
-                <TableCell className="text-sm">{run.attempt}</TableCell>
-                <TableCell className="text-sm">
-                  {run.http_status ?? '—'}
-                </TableCell>
-                <TableCell className="text-sm">
-                  {formatDuration(run.duration_ms)}
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {timeAgo(run.started_at)}
-                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">{run.attempt}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">{run.http_status ?? '—'}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">{formatDuration(run.duration_ms)}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">{timeAgo(run.started_at)}</TableCell>
                 <TableCell className="text-sm text-destructive max-w-xs truncate">
-                  {run.error_msg ?? '—'}
+                  {run.error_msg ?? <span className="text-muted-foreground">—</span>}
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="sm" onClick={() => setLogsRunId(run.id)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                    onClick={() => setLogsRunId(run.id)}
+                  >
                     Logs
                   </Button>
                 </TableCell>
@@ -237,10 +266,7 @@ export default function JobDetailPage({
             ))}
             {runs?.length === 0 && (
               <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="text-center text-muted-foreground py-8"
-                >
+                <TableCell colSpan={7} className="text-center text-muted-foreground py-12 text-sm">
                   No runs yet
                 </TableCell>
               </TableRow>

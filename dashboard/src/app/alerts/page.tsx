@@ -2,27 +2,37 @@
 
 import { useState } from 'react'
 import useSWR from 'swr'
-import Link from 'next/link'
 import { api, AlertConfig } from '@/lib/api'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Card } from '@/components/ui/card'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Bell, MoreHorizontal } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+function ChannelBadge({ label, color }: { label: string; color: string }) {
+  return (
+    <span className={cn('text-xs px-2 py-0.5 rounded-full font-medium border', color)}>
+      {label}
+    </span>
+  )
+}
+
+function channelBadges(cfg: AlertConfig) {
+  const badges: { label: string; color: string }[] = []
+  if (cfg.slack_url)   badges.push({ label: 'Slack',   color: 'bg-purple-500/10 text-purple-400 border-purple-500/20' })
+  if (cfg.email)       badges.push({ label: 'Email',   color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' })
+  if (cfg.webhook_url) badges.push({ label: 'Webhook', color: 'bg-green-500/10 text-green-400 border-green-500/20' })
+  return badges
+}
 
 function CreateAlertDialog({ open, onClose, onCreated }: {
   open: boolean
@@ -50,11 +60,10 @@ function CreateAlertDialog({ open, onClose, onCreated }: {
         on_dead: form.on_dead,
         on_recovery: form.on_recovery,
       }
-      if (form.job_id) payload.job_id = form.job_id
-      if (form.slack_url) payload.slack_url = form.slack_url
+      if (form.job_id)      payload.job_id      = form.job_id
+      if (form.slack_url)   payload.slack_url   = form.slack_url
       if (form.webhook_url) payload.webhook_url = form.webhook_url
-      if (form.email) payload.email = form.email
-
+      if (form.email)       payload.email       = form.email
       await api.alerts.create(payload)
       onCreated()
     } catch (e: unknown) {
@@ -69,65 +78,79 @@ function CreateAlertDialog({ open, onClose, onCreated }: {
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md bg-card border-border">
         <DialogHeader>
           <DialogTitle>New Alert Config</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 py-2">
           <div>
-            <label className="text-sm font-medium">Job ID (optional — blank = all jobs)</label>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Job ID <span className="normal-case font-normal">(optional — blank = all jobs)</span>
+            </label>
             <Input
+              className="mt-1.5 bg-muted/40 border-border"
               placeholder="uuid of specific job"
               value={form.job_id}
               onChange={e => setForm(f => ({ ...f, job_id: e.target.value }))}
             />
           </div>
           <div>
-            <label className="text-sm font-medium">Slack webhook URL</label>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Slack Webhook URL</label>
             <Input
-              placeholder="https://hooks.slack.com/..."
+              className="mt-1.5 bg-muted/40 border-border"
+              placeholder="https://hooks.slack.com/…"
               value={form.slack_url}
               onChange={e => setForm(f => ({ ...f, slack_url: e.target.value }))}
             />
           </div>
           <div>
-            <label className="text-sm font-medium">Webhook URL</label>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Webhook URL</label>
             <Input
+              className="mt-1.5 bg-muted/40 border-border"
               placeholder="https://example.com/hook"
               value={form.webhook_url}
               onChange={e => setForm(f => ({ ...f, webhook_url: e.target.value }))}
             />
           </div>
           <div>
-            <label className="text-sm font-medium">Email</label>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Email</label>
             <Input
+              className="mt-1.5 bg-muted/40 border-border"
               type="email"
               placeholder="alerts@example.com"
               value={form.email}
               onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
             />
           </div>
-          <div className="flex gap-2 pt-1">
-            {(['on_failure', 'on_dead', 'on_recovery'] as const).map(flag => (
-              <button
-                key={flag}
-                type="button"
-                onClick={() => toggle(flag)}
-                className={`text-xs px-3 py-1 rounded-full border transition-colors ${
-                  form[flag]
-                    ? 'bg-foreground text-background border-foreground'
-                    : 'bg-background text-muted-foreground border-border'
-                }`}
-              >
-                {flag.replace('on_', '')}
-              </button>
-            ))}
+          <div>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 block">Triggers</label>
+            <div className="flex gap-2">
+              {(['on_failure', 'on_dead', 'on_recovery'] as const).map(flag => (
+                <button
+                  key={flag}
+                  type="button"
+                  onClick={() => toggle(flag)}
+                  className={cn(
+                    'text-xs px-3 py-1.5 rounded-full border transition-colors font-medium',
+                    form[flag]
+                      ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                      : 'bg-muted/40 text-muted-foreground border-border hover:border-border/80'
+                  )}
+                >
+                  {flag.replace('on_', '')}
+                </button>
+              ))}
+            </div>
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={loading}>
+          <Button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="bg-amber-500 hover:bg-amber-400 text-black font-medium"
+          >
             {loading ? 'Creating…' : 'Create'}
           </Button>
         </DialogFooter>
@@ -136,18 +159,8 @@ function CreateAlertDialog({ open, onClose, onCreated }: {
   )
 }
 
-function channelBadges(cfg: AlertConfig) {
-  const channels: string[] = []
-  if (cfg.slack_url) channels.push('Slack')
-  if (cfg.webhook_url) channels.push('Webhook')
-  if (cfg.email) channels.push('Email')
-  return channels
-}
-
 export default function AlertsPage() {
-  const { data: alerts, error, mutate } = useSWR('alerts', api.alerts.list, {
-    refreshInterval: 10000,
-  })
+  const { data: alerts, error, mutate } = useSWR('alerts', api.alerts.list, { refreshInterval: 10000 })
   const [creating, setCreating] = useState(false)
 
   const handleDelete = async (id: string) => {
@@ -157,69 +170,81 @@ export default function AlertsPage() {
   }
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <div className="mb-6">
-        <Link href="/" className="text-sm text-muted-foreground hover:underline">
-          ← All jobs
-        </Link>
-      </div>
-
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-8">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-medium">Alert Configs</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Notify on job failure, dead runs, or recovery
-          </p>
+          <h1 className="text-xl font-semibold">Alerts</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Notify on job failure, dead runs, or recovery</p>
         </div>
-        <Button onClick={() => setCreating(true)}>+ New Alert</Button>
+        <Button
+          onClick={() => setCreating(true)}
+          className="bg-amber-500 hover:bg-amber-400 text-black font-medium"
+        >
+          + New Alert
+        </Button>
       </div>
 
       {error && (
-        <div className="text-destructive text-sm mb-4">
+        <div className="text-destructive text-sm mb-6 p-3 rounded-md bg-destructive/10 border border-destructive/20">
           Failed to load alerts: {error.message}
         </div>
       )}
 
-      <Card>
+      <Card className="bg-card border-border overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Scope</TableHead>
-              <TableHead>Channels</TableHead>
-              <TableHead>Triggers</TableHead>
-              <TableHead>Actions</TableHead>
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="text-muted-foreground font-medium">Scope</TableHead>
+              <TableHead className="text-muted-foreground font-medium">Channels</TableHead>
+              <TableHead className="text-muted-foreground font-medium">Triggers</TableHead>
+              <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {!alerts && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={4} className="text-center text-muted-foreground py-12">
                   Loading…
                 </TableCell>
               </TableRow>
             )}
             {alerts?.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                  No alert configs yet
+                <TableCell colSpan={4} className="text-center py-16">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="size-12 rounded-xl bg-muted flex items-center justify-center">
+                      <Bell className="size-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">No alert configs yet</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Get notified when jobs fail or recover</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => setCreating(true)}
+                      className="bg-amber-500 hover:bg-amber-400 text-black"
+                    >
+                      + New Alert
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
             {alerts?.map(cfg => (
-              <TableRow key={cfg.id}>
+              <TableRow key={cfg.id} className="border-border hover:bg-white/[0.02] group">
                 <TableCell className="text-sm">
                   {cfg.job_id ? (
-                    <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                    <code className="text-xs bg-muted/60 px-2 py-1 rounded font-mono border border-border">
                       {cfg.job_id.slice(0, 8)}…
                     </code>
                   ) : (
-                    <span className="text-muted-foreground">All jobs</span>
+                    <span className="text-muted-foreground text-xs">All jobs</span>
                   )}
                 </TableCell>
                 <TableCell>
-                  <div className="flex gap-1">
-                    {channelBadges(cfg).map(ch => (
-                      <Badge key={ch} variant="secondary">{ch}</Badge>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {channelBadges(cfg).map(b => (
+                      <ChannelBadge key={b.label} label={b.label} color={b.color} />
                     ))}
                     {channelBadges(cfg).length === 0 && (
                       <span className="text-xs text-muted-foreground">None</span>
@@ -227,20 +252,44 @@ export default function AlertsPage() {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="flex gap-1">
-                    {cfg.on_failure && <Badge variant="destructive">failure</Badge>}
-                    {cfg.on_dead && <Badge variant="destructive">dead</Badge>}
-                    {cfg.on_recovery && <Badge variant="default">recovery</Badge>}
+                  <div className="flex gap-1.5 flex-wrap">
+                    {cfg.on_failure && (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-red-500/10 text-red-400 border border-red-500/20">
+                        failure
+                      </span>
+                    )}
+                    {cfg.on_dead && (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-red-500/10 text-red-400 border border-red-500/20">
+                        dead
+                      </span>
+                    )}
+                    {cfg.on_recovery && (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-500/10 text-green-400 border border-green-500/20">
+                        recovery
+                      </span>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleDelete(cfg.id)}
-                  >
-                    Delete
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="size-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <MoreHorizontal className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-32">
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => handleDelete(cfg.id)}
+                      >
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
