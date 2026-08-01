@@ -11,8 +11,8 @@ import { cn } from '@/lib/utils'
 import { useAuth } from '@/components/auth-provider'
 
 const PRIMARY_NAV = [
-  { href: '/',           label: 'Home',       icon: Home },
-  { href: '/__jobs',     label: 'Jobs',       icon: Briefcase },
+  { href: '/',              label: 'Home',       icon: Home },
+  { href: '/dashboard',      label: 'Jobs',       icon: Briefcase },
   { href: '/checks',     label: 'Checks',     icon: CheckSquare2 },
   { href: '/heartbeats', label: 'Heartbeats', icon: HeartPulse },
   { href: '/sites',      label: 'Sites',      icon: Globe2 },
@@ -46,11 +46,11 @@ export function Sidebar() {
   const isActive = (href: string) => {
     if (href === '#') return false
     if (href === '/') return pathname === '/'
-    if (href === '/__jobs') return pathname === '/' || pathname.startsWith('/jobs')
+    if (href === '/dashboard') return pathname === '/dashboard' || pathname.startsWith('/jobs')
     return pathname === href || pathname.startsWith(href + '/')
   }
 
-  const navHref = (href: string) => (href === '/__jobs' ? '/' : href)
+  const navHref = (href: string) => href
 
   const NavItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) => {
     const active = isActive(href)
