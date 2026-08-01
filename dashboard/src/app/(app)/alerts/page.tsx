@@ -6,7 +6,7 @@ import { api, AlertConfig } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import {
   Bell, Plus, Search, X, Trash2,
-  AlertTriangle, CheckCircle2, Zap, Mail, MessageSquare, Globe,
+  Zap, Mail, MessageSquare, Globe,
 } from 'lucide-react'
 
 function ChannelBadge({ icon: Icon, label, color }: { icon: React.ElementType; label: string; color: string }) {

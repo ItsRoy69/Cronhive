@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import {
   Globe, Plus, Search, X, ExternalLink,
   CheckCircle2, XCircle, AlertTriangle, Clock,
-  TrendingUp, Eye, RefreshCw,
+  RefreshCw,
 } from 'lucide-react'
 
 type SiteStatus = 'up' | 'down' | 'degraded' | 'pending'
