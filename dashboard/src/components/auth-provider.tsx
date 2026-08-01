@@ -118,8 +118,11 @@ function AuthScreen({ onAuth }: { onAuth: (token: string, user: User) => void })
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('cronhive_token'))
+  const [token, setToken] = useState<string | null>(() =>
+    typeof window !== 'undefined' ? localStorage.getItem('cronhive_token') : null
+  )
   const [user, setUser] = useState<User | null>(() => {
+    if (typeof window === 'undefined') return null
     try {
       const stored = localStorage.getItem('cronhive_user')
       return stored ? JSON.parse(stored) : null

@@ -133,9 +133,9 @@ export default function HomePage() {
       <div className="flex flex-col h-full">
 
         {/* ── Top Filter Bar (Cronhive-style) ── */}
-        <div className="flex items-center gap-2.5 px-5 py-3 border-b border-border bg-card/40 shrink-0">
+        <div className="flex items-center gap-2.5 px-5 py-3 border-b border-border bg-background shrink-0">
           {/* Filters button */}
-          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs border-border hover:bg-white/5 shrink-0">
+          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs border-border hover:bg-muted shrink-0">
             <Filter className="size-3.5" />
             Filters
             <ChevronDown className="size-3" />
@@ -162,12 +162,12 @@ export default function HomePage() {
 
           {/* Right actions */}
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs border-border hover:bg-white/5">
+            <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs border-border hover:bg-muted">
               <Calendar className="size-3.5" />
               Last 7 Days
               <ChevronDown className="size-3" />
             </Button>
-            <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs border-border hover:bg-white/5">
+            <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs border-border hover:bg-muted">
               All Environments
               <ChevronDown className="size-3" />
             </Button>
@@ -198,8 +198,8 @@ export default function HomePage() {
                 className={cn(
                   'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
                   statusFilter === f.id
-                    ? 'bg-amber-500/10 text-amber-400'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                    ? 'bg-amber-500/10 text-amber-600'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 )}
               >
                 {f.label}
@@ -207,7 +207,7 @@ export default function HomePage() {
                   <span className={cn(
                     'inline-flex items-center justify-center text-[10px] px-1.5 min-w-[18px] rounded-full',
                     statusFilter === f.id
-                      ? 'bg-amber-500/20 text-amber-400'
+                      ? 'bg-amber-500/20 text-amber-600'
                       : 'bg-muted text-muted-foreground'
                   )}>
                     {f.count}
@@ -273,11 +273,11 @@ export default function HomePage() {
                   </TableRow>
                 )}
                 {displayedJobs.map(job => (
-                  <TableRow key={job.id} className="border-border hover:bg-white/[0.02] group">
+                  <TableRow key={job.id} className="border-border hover:bg-muted/50 group">
                     <TableCell>
                       <Link
                         href={`/jobs/${job.id}`}
-                        className="font-medium hover:text-amber-400 transition-colors"
+                        className="font-medium hover:text-amber-600 transition-colors"
                       >
                         {job.name}
                       </Link>

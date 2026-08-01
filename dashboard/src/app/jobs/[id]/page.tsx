@@ -157,20 +157,20 @@ export default function JobDetailPage({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 border-border hover:bg-white/5">
+            <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 border-border hover:bg-muted">
               <Bell className="size-3.5" />
               Alerts: On
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="h-8 text-xs gap-1.5 border-border hover:bg-white/5"
+              className="h-8 text-xs gap-1.5 border-border hover:bg-muted"
               onClick={() => setEditing(true)}
             >
               <Pencil className="size-3.5" />
               Edit
             </Button>
-            <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 border-border hover:bg-white/5">
+            <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 border-border hover:bg-muted">
               More
               <ChevronDown className="size-3.5" />
             </Button>
@@ -244,7 +244,7 @@ export default function JobDetailPage({
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-medium">Execution Time</CardTitle>
-                  <Button variant="outline" size="sm" className="h-7 text-xs gap-1 border-border hover:bg-white/5">
+                  <Button variant="outline" size="sm" className="h-7 text-xs gap-1 border-border hover:bg-muted">
                     <Calendar className="size-3" />
                     7 Days
                     <ChevronDown className="size-3" />
@@ -337,7 +337,7 @@ export default function JobDetailPage({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <CardTitle className="text-sm font-medium">Events</CardTitle>
-                  <Button variant="outline" size="sm" className="h-6 text-xs gap-1 border-border hover:bg-white/5">
+                  <Button variant="outline" size="sm" className="h-6 text-xs gap-1 border-border hover:bg-muted">
                     7 Days <ChevronDown className="size-3" />
                   </Button>
                 </div>
@@ -361,7 +361,7 @@ export default function JobDetailPage({
               </TableHeader>
               <TableBody>
                 {runs?.map(run => (
-                  <TableRow key={run.id} className="border-border hover:bg-white/[0.02]">
+                  <TableRow key={run.id} className="border-border hover:bg-muted/50">
                     <TableCell><StatusDot status={run.status} /></TableCell>
                     <TableCell className="text-sm text-muted-foreground">{run.attempt}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{run.http_status ?? '—'}</TableCell>
@@ -491,7 +491,7 @@ export default function JobDetailPage({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full h-8 text-xs gap-1.5 border-border hover:bg-white/5"
+                  className="w-full h-8 text-xs gap-1.5 border-border hover:bg-muted"
                   onClick={handleTrigger}
                 >
                   <Zap className="size-3.5" />
@@ -500,7 +500,7 @@ export default function JobDetailPage({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full h-8 text-xs border-border hover:bg-white/5"
+                  className="w-full h-8 text-xs border-border hover:bg-muted"
                   onClick={handlePause}
                 >
                   {job.status === 'active' ? 'Pause' : 'Resume'}
