@@ -132,7 +132,7 @@ export default function HomePage() {
     <TooltipProvider delayDuration={100}>
       <div className="flex flex-col h-full">
 
-        {/* ── Top Filter Bar (Cronitor-style) ── */}
+        {/* ── Top Filter Bar (Cronhive-style) ── */}
         <div className="flex items-center gap-2.5 px-5 py-3 border-b border-border bg-card/40 shrink-0">
           {/* Filters button */}
           <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs border-border hover:bg-white/5 shrink-0">

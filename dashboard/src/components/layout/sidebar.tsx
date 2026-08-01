@@ -5,8 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   Home, Briefcase, CheckSquare2, HeartPulse, Globe2,
   AlertCircle, Clock, MonitorCheck, Wrench,
-  Rocket, Settings, BookOpen, HelpCircle, KeyRound,
-  Terminal, LogOut,
+  Rocket, Settings, BookOpen, HelpCircle, LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/components/auth-provider'
