@@ -42,7 +42,7 @@ export function Reveal({
       suppressHydrationWarning
       className={cn(
         'transition-all duration-700 ease-out',
-        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6',
+        visible ? 'scale-100 opacity-100 translate-y-0' : 'scale-[0.98] opacity-0 translate-y-6',
         className
       )}
       style={{ transitionDelay: visible ? `${delay}ms` : '0ms' }}

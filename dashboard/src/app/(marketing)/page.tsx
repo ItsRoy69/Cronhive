@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   ArrowRight,
   Activity,
@@ -9,65 +10,21 @@ import {
   Mail,
   Phone,
   Check,
+  X,
   MessageSquare,
   FileText,
   HelpCircle,
-  Share2,
+  Globe,
+  Lock,
+  Users,
+  Webhook,
+  Star,
 } from 'lucide-react'
 import { Reveal } from '@/components/marketing/reveal'
 import { AnimatedNumber } from '@/components/marketing/animated-number'
-import { CiscoLogo, MondayLogo, SendbirdLogo, SlackLogo } from '@/components/marketing/logos'
-
-function Logo({ light = false }: { light?: boolean }) {
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 shadow-sm shadow-indigo-500/30">
-        <Activity className="size-4.5 text-white" strokeWidth={2.5} />
-      </div>
-      <span className={`text-lg font-semibold tracking-tight ${light ? 'text-white' : 'text-slate-900'}`}>
-        CronHive
-      </span>
-    </div>
-  )
-}
-
-function Navbar() {
-  return (
-    <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/75 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        <Logo />
-        <nav className="hidden items-center gap-8 text-sm text-slate-600 md:flex">
-          <Link href="#features" className="transition-colors hover:text-slate-900">
-            Product
-          </Link>
-          <Link href="#stats" className="transition-colors hover:text-slate-900">
-            Pricing
-          </Link>
-          <Link href="#trusted" className="transition-colors hover:text-slate-900">
-            Customers
-          </Link>
-          <Link href="#contact" className="transition-colors hover:text-slate-900">
-            Docs
-          </Link>
-        </nav>
-        <div className="flex items-center gap-4">
-          <Link
-            href="/keys"
-            className="hidden text-sm text-slate-600 transition-colors hover:text-slate-900 sm:block"
-          >
-            Sign in
-          </Link>
-          <Link
-            href="/keys"
-            className="inline-flex items-center gap-1.5 rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-md hover:shadow-indigo-200 active:translate-y-0"
-          >
-            Start for free
-          </Link>
-        </div>
-      </div>
-    </header>
-  )
-}
+import { CiscoLogo, MondayLogo, SendbirdLogo, SlackLogo, SlackMark } from '@/components/marketing/logos'
+import { Logo } from '@/components/marketing/logo'
+import { Navbar } from '@/components/marketing/navbar'
 
 function FloatingAlert({
   icon: Icon,
@@ -100,7 +57,7 @@ function FloatingAlert({
 
 function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-white pt-20 pb-32">
+    <section id="hero" data-nav-theme="light" className="relative overflow-hidden bg-white pt-20 pb-32">
       {/* Decorative gradient blobs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="animate-blob absolute -top-24 left-1/4 size-96 rounded-full bg-indigo-200/40 blur-3xl" />
@@ -131,10 +88,10 @@ function HeroSection() {
         </Reveal>
 
         <Reveal delay={120}>
-          <div className="mt-10 flex items-center justify-center gap-3">
+          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               href="/keys"
-              className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-3 text-sm font-medium text-white shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-300 active:translate-y-0"
+              className="btn-shine group inline-flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-3 text-sm font-medium text-white shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-300 active:translate-y-0"
             >
               Start for free
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
@@ -151,16 +108,29 @@ function HeroSection() {
         {/* Dashboard Preview */}
         <Reveal delay={220}>
           <div className="relative mx-auto mt-16 max-w-4xl">
-            <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-2xl shadow-slate-400/20">
+            <div className="pointer-events-none absolute -inset-6 -z-10" aria-hidden>
+              <Image
+                src="/marketing/hero-glow.jpg"
+                alt=""
+                fill
+                sizes="(min-width: 1024px) 900px, 100vw"
+                className="object-cover opacity-30 blur-2xl"
+              />
+            </div>
+
+            <div
+              data-nav-theme="dark"
+              className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-2xl shadow-slate-400/20"
+            >
               <div className="flex items-center gap-1.5 border-b border-slate-700 bg-slate-800 px-4 py-3">
                 <span className="size-3 rounded-full bg-red-400" />
                 <span className="size-3 rounded-full bg-yellow-400" />
                 <span className="size-3 rounded-full bg-green-400" />
               </div>
-              <div className="p-6">
-                <div className="mb-4 grid grid-cols-4 gap-3">
+              <div className="p-4 sm:p-6">
+                <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
                   {['All Jobs', 'Running', 'Failed', 'Paused'].map((label, i) => (
-                    <div key={label} className="rounded-lg bg-slate-800 p-3 transition-colors hover:bg-slate-750">
+                    <div key={label} className="rounded-lg bg-slate-800 p-2.5 transition-colors hover:bg-slate-750 sm:p-3">
                       <p className="text-xs text-slate-400">{label}</p>
                       <p className="mt-1 text-lg font-semibold text-white">{[24, 18, 3, 3][i]}</p>
                     </div>
@@ -175,15 +145,15 @@ function HeroSection() {
                   ].map(job => (
                     <div
                       key={job.name}
-                      className="flex items-center justify-between rounded-lg bg-slate-800/60 px-4 py-3 transition-colors hover:bg-slate-800"
+                      className="flex items-center justify-between gap-3 rounded-lg bg-slate-800/60 px-3 py-3 transition-colors hover:bg-slate-800 sm:px-4"
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
                         <span
-                          className={`size-2 rounded-full ${job.status === 'success' ? 'bg-green-400' : 'bg-red-400'}`}
+                          className={`size-2 shrink-0 rounded-full ${job.status === 'success' ? 'bg-green-400' : 'bg-red-400'}`}
                         />
-                        <span className="text-sm text-slate-200">{job.name}</span>
+                        <span className="truncate text-sm text-slate-200">{job.name}</span>
                       </div>
-                      <code className="font-mono text-xs text-slate-400">{job.cron}</code>
+                      <code className="shrink-0 font-mono text-xs text-slate-400">{job.cron}</code>
                     </div>
                   ))}
                 </div>
@@ -210,18 +180,24 @@ function HeroSection() {
 
         {/* Testimonial */}
         <Reveal delay={300}>
-          <div className="mx-auto mt-16 max-w-xl text-left">
-            <p className="text-sm leading-relaxed text-slate-600 italic">
-              &quot;Before using CronHive we had an important data backup job fail silently for over a
-              month.&quot;
+          <div className="mx-auto mt-16 max-w-xl rounded-2xl border border-slate-200 bg-slate-50/60 p-5 text-left">
+            <div className="mb-2 flex items-center gap-0.5" aria-hidden>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star key={i} className="size-3.5 fill-amber-400 text-amber-400" />
+              ))}
+            </div>
+            <p className="text-sm leading-relaxed text-slate-700">
+              &quot;Our nightly backup job failed silently for three weeks before anyone noticed. By the
+              time we caught it manually, we&apos;d already lost data we couldn&apos;t recover. CronHive
+              would have paged us the first night it missed a run.&quot;
             </p>
-            <div className="mt-3 flex items-center gap-3">
-              <div className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-violet-100">
-                <span className="text-xs font-semibold text-indigo-600">NG</span>
+            <div className="mt-4 flex items-center gap-3">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 ring-1 ring-indigo-200/50">
+                <span className="text-xs font-semibold text-indigo-600">MC</span>
               </div>
               <div>
-                <p className="text-xs font-medium text-slate-900">Natalie Gordon</p>
-                <p className="text-xs text-slate-500">CEO of Babylist</p>
+                <p className="text-xs font-medium text-slate-900">Marcus Chen</p>
+                <p className="text-xs text-slate-500">Senior DevOps Engineer, Fernhill Robotics</p>
               </div>
             </div>
           </div>
@@ -239,7 +215,7 @@ function TrustedBySection() {
     { name: 'Slack', Mark: SlackLogo },
   ]
   return (
-    <section id="trusted" className="bg-slate-950 py-24">
+    <section id="trusted" data-nav-theme="dark" className="bg-slate-950 py-24">
       <div className="mx-auto flex max-w-5xl flex-col items-center justify-center gap-16 px-6 md:flex-row md:gap-28">
         <Reveal>
           <h2 className="text-2xl leading-snug font-bold text-white">
@@ -248,7 +224,7 @@ function TrustedBySection() {
             the world&apos;s best teams
           </h2>
         </Reveal>
-        <div className="grid grid-cols-2 place-items-center gap-x-28 gap-y-12">
+        <div className="grid grid-cols-2 place-items-center gap-x-10 gap-y-10 sm:gap-x-16 md:gap-x-28 md:gap-y-12">
           {logos.map(({ name, Mark }, i) => (
             <Reveal key={name} delay={i * 80} className="flex items-center justify-center">
               <Mark className="text-slate-500 transition-colors hover:text-white" />
@@ -257,6 +233,21 @@ function TrustedBySection() {
         </div>
       </div>
     </section>
+  )
+}
+
+function JobRunSparkline() {
+  const bars = [35, 60, 28, 78, 52, 90, 68, 95]
+  return (
+    <div className="flex h-8 items-end gap-1">
+      {bars.map((h, i) => (
+        <span
+          key={i}
+          className="w-1.5 rounded-full bg-gradient-to-t from-emerald-500/50 to-emerald-400"
+          style={{ height: `${h}%` }}
+        />
+      ))}
+    </div>
   )
 }
 
@@ -274,37 +265,111 @@ function JobsFeature() {
         </p>
       </Reveal>
       <Reveal delay={120}>
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60">
-          <div className="flex items-center gap-1.5 border-b border-slate-100 bg-slate-50 px-4 py-3">
-            <span className="size-3 rounded-full bg-red-400" />
-            <span className="size-3 rounded-full bg-yellow-400" />
-            <span className="size-3 rounded-full bg-green-400" />
+        <div className="relative">
+          <div className="pointer-events-none absolute -inset-4 -z-10" aria-hidden>
+            <Image
+              src="/marketing/jobs-glow.jpg"
+              alt=""
+              fill
+              sizes="(min-width: 768px) 600px, 100vw"
+              className="object-cover opacity-25 blur-2xl"
+            />
           </div>
-          <div className="space-y-3 p-5">
-            <div className="flex items-center gap-3 rounded-lg border border-red-100 bg-red-50 p-4">
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-red-100">
-                <span className="text-sm text-red-600">✕</span>
+
+          <div
+            data-nav-theme="dark"
+            className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-xl shadow-slate-300/40"
+          >
+            <div className="flex items-center gap-1.5 border-b border-slate-700 bg-slate-800 px-4 py-3">
+              <span className="size-3 rounded-full bg-red-400" />
+              <span className="size-3 rounded-full bg-yellow-400" />
+              <span className="size-3 rounded-full bg-green-400" />
+            </div>
+            <div className="p-5">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-xs font-medium text-slate-400">Recent activity</span>
+                <span className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-400">
+                  <span className="relative flex size-1.5">
+                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex size-1.5 rounded-full bg-emerald-400" />
+                  </span>
+                  Live
+                </span>
               </div>
-              <div>
-                <p className="text-sm font-medium text-slate-900">Job failed</p>
-                <p className="text-xs text-slate-500">&quot;Snowflake Exporter&quot; cron job has failed</p>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4">
+                  <div className="relative flex size-8 shrink-0 items-center justify-center rounded-full bg-red-500/15">
+                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-red-500/30" />
+                    <X className="relative size-4 text-red-400" strokeWidth={2.5} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-white">Job failed</p>
+                    <p className="text-xs text-slate-400">&quot;Snowflake Exporter&quot; cron job has failed</p>
+                  </div>
+                  <span className="shrink-0 text-xs font-medium text-slate-500">2m ago</span>
+                </div>
+
+                <div className="rounded-lg border border-slate-700/60 bg-slate-800/60 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-amber-500/15">
+                      <Clock className="size-4 text-amber-400" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-white">Send invoices job is running</p>
+                      <p className="text-xs text-slate-400">Elapsed 32:51 · Expected 48 min</p>
+                    </div>
+                    <span className="shrink-0 text-xs font-medium text-indigo-400">Show details</span>
+                  </div>
+                  <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-700">
+                    <div className="h-full w-[68%] rounded-full bg-gradient-to-r from-indigo-500 to-violet-500" />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-700/60 bg-slate-800/60 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-500/15">
+                      <Check className="size-4 text-emerald-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">Data Backup</p>
+                      <p className="text-xs text-slate-400">8 runs · 100% success (30d)</p>
+                    </div>
+                  </div>
+                  <JobRunSparkline />
+                </div>
               </div>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50 p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-amber-100">
-                  <Clock className="size-4 text-amber-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-900">Send invoices job is running</p>
-                  <p className="text-xs text-slate-500">Elapsed 32:51 · Expected 48 min</p>
-                </div>
+          </div>
+
+          <div className="animate-float absolute -bottom-6 -left-6 hidden w-48 rounded-xl border border-slate-200 bg-white p-3 shadow-lg shadow-slate-200/60 lg:block">
+            <div className="mb-1.5 flex items-center gap-2">
+              <div className="flex size-5 items-center justify-center rounded bg-emerald-500">
+                <Check className="size-3 text-white" strokeWidth={2.5} />
               </div>
-              <span className="shrink-0 text-xs font-medium text-indigo-600">Show details</span>
+              <span className="text-xs font-medium text-slate-900">Job health</span>
             </div>
+            <p className="text-lg font-bold text-slate-900">
+              99.2% <span className="text-xs font-normal text-slate-500">success rate</span>
+            </p>
           </div>
         </div>
       </Reveal>
+    </div>
+  )
+}
+
+function RegionResponseBars() {
+  const bars = [42, 58, 30, 70, 48, 65, 38, 55]
+  return (
+    <div className="flex h-6 items-end gap-1">
+      {bars.map((h, i) => (
+        <span
+          key={i}
+          className="w-1.5 rounded-full bg-gradient-to-t from-indigo-500/40 to-indigo-400"
+          style={{ height: `${h}%` }}
+        />
+      ))}
     </div>
   )
 }
@@ -317,45 +382,87 @@ function ChecksFeature() {
   return (
     <div className="grid items-center gap-12 md:grid-cols-2">
       <Reveal className="order-2 md:order-1">
-        <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-xl shadow-slate-300/40">
-          <div className="flex items-center gap-1.5 border-b border-slate-700 bg-slate-800 px-4 py-3">
-            <span className="size-3 rounded-full bg-red-400" />
-            <span className="size-3 rounded-full bg-yellow-400" />
-            <span className="size-3 rounded-full bg-green-400" />
+        <div className="relative">
+          <div className="pointer-events-none absolute -inset-4 -z-10" aria-hidden>
+            <Image
+              src="/marketing/checks-glow.jpg"
+              alt=""
+              fill
+              sizes="(min-width: 768px) 600px, 100vw"
+              className="object-cover opacity-25 blur-2xl"
+            />
           </div>
-          <div className="p-5">
-            <div className="mb-4 h-2 w-2/3 rounded-full bg-slate-700" />
-            <div className="relative flex h-40 items-center justify-center overflow-hidden rounded-lg bg-slate-800">
-              <div
-                className="absolute inset-0 opacity-40"
-                style={{
-                  backgroundImage: 'radial-gradient(circle, rgba(129,140,248,0.5) 1px, transparent 1px)',
-                  backgroundSize: '14px 14px',
-                }}
-              />
-              {[
-                { top: '30%', left: '20%' },
-                { top: '55%', left: '45%' },
-                { top: '35%', left: '68%' },
-                { top: '65%', left: '80%' },
-              ].map((pos, i) => (
-                <span
-                  key={i}
-                  className="absolute size-2 rounded-full bg-indigo-400 shadow-[0_0_0_4px_rgba(129,140,248,0.25)]"
-                  style={pos}
+
+          <div
+            data-nav-theme="dark"
+            className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-xl shadow-slate-300/40"
+          >
+            <div className="flex items-center gap-1.5 border-b border-slate-700 bg-slate-800 px-4 py-3">
+              <span className="size-3 rounded-full bg-red-400" />
+              <span className="size-3 rounded-full bg-yellow-400" />
+              <span className="size-3 rounded-full bg-green-400" />
+            </div>
+            <div className="p-5">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-xs font-medium text-slate-400">Global response time</span>
+                <span className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-400">
+                  <span className="relative flex size-1.5">
+                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex size-1.5 rounded-full bg-emerald-400" />
+                  </span>
+                  Live
+                </span>
+              </div>
+
+              <div className="mb-4 flex items-center justify-between rounded-lg border border-slate-700/60 bg-slate-800/60 px-3 py-2.5">
+                <RegionResponseBars />
+                <span className="text-xs font-medium text-slate-300">187ms avg</span>
+              </div>
+
+              <div className="relative flex h-40 items-center justify-center overflow-hidden rounded-lg bg-slate-800">
+                <div
+                  className="absolute inset-0 opacity-40"
+                  style={{
+                    backgroundImage: 'radial-gradient(circle, rgba(129,140,248,0.5) 1px, transparent 1px)',
+                    backgroundSize: '14px 14px',
+                  }}
                 />
-              ))}
+                {[
+                  { top: '30%', left: '20%' },
+                  { top: '55%', left: '45%' },
+                  { top: '35%', left: '68%' },
+                  { top: '65%', left: '80%' },
+                ].map((pos, i) => (
+                  <span
+                    key={i}
+                    className="absolute size-2 rounded-full bg-indigo-400 shadow-[0_0_0_4px_rgba(129,140,248,0.25)]"
+                    style={pos}
+                  />
+                ))}
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                {['SSL Monitoring', 'Performance Monitoring', 'Content Monitoring', 'Global Uptime Monitoring'].map(
+                  label => (
+                    <div key={label} className="flex items-center gap-1.5 rounded-lg bg-slate-800 px-2.5 py-1.5">
+                      <Check className="size-3 text-green-400" />
+                      <span className="text-[11px] text-slate-300">{label}</span>
+                    </div>
+                  )
+                )}
+              </div>
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              {['SSL Monitoring', 'Performance Monitoring', 'Content Monitoring', 'Global Uptime Monitoring'].map(
-                label => (
-                  <div key={label} className="flex items-center gap-1.5 rounded-lg bg-slate-800 px-2.5 py-1.5">
-                    <Check className="size-3 text-green-400" />
-                    <span className="text-[11px] text-slate-300">{label}</span>
-                  </div>
-                )
-              )}
+          </div>
+
+          <div className="animate-float absolute -right-6 -bottom-6 hidden w-48 rounded-xl border border-slate-200 bg-white p-3 shadow-lg shadow-slate-200/60 lg:block">
+            <div className="mb-1.5 flex items-center gap-2">
+              <div className="flex size-5 items-center justify-center rounded bg-indigo-500">
+                <Globe className="size-3 text-white" strokeWidth={2.5} />
+              </div>
+              <span className="text-xs font-medium text-slate-900">Global reach</span>
             </div>
+            <p className="text-lg font-bold text-slate-900">
+              13+ <span className="text-xs font-normal text-slate-500">regions monitored</span>
+            </p>
           </div>
         </div>
       </Reveal>
@@ -388,38 +495,88 @@ function ChecksFeature() {
   )
 }
 
+function ChannelBadge({
+  icon: Icon,
+  label,
+  iconClass,
+}: {
+  icon: React.ElementType
+  label: string
+  iconClass: string
+}) {
+  return (
+    <div className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-white py-1 pr-3 pl-1 shadow-sm">
+      <span className={`flex size-5 items-center justify-center rounded-full ${iconClass}`}>
+        <Icon className="size-3 text-white" strokeWidth={2.5} />
+      </span>
+      <span className="text-xs font-medium text-slate-700">{label}</span>
+    </div>
+  )
+}
+
+function SecurityBadge({ icon: Icon, label }: { icon: React.ElementType; label: string }) {
+  return (
+    <div className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
+      <Icon className="size-3.5 text-indigo-600" />
+      <span className="text-xs font-medium text-slate-700">{label}</span>
+    </div>
+  )
+}
+
 function FeaturesSection() {
-  const miniFeatures = [
-    {
-      icon: Bell,
-      title: 'Instant alerting',
-      description: 'Send alerts to 9+ destinations including SMS, Email, Slack and PagerDuty.',
-    },
-    {
-      icon: Shield,
-      title: 'Enterprise-grade security',
-      description: 'SOC2 compliant, encrypted at rest, with strict multi-tenant isolation.',
-    },
+  const channels = [
+    { icon: SlackMark, label: 'Slack', iconClass: 'bg-[#4A154B]' },
+    { icon: Bell, label: 'PagerDuty', iconClass: 'bg-[#06AC38]' },
+    { icon: Phone, label: 'SMS', iconClass: 'bg-blue-500' },
+    { icon: Mail, label: 'Email', iconClass: 'bg-red-500' },
+    { icon: Webhook, label: 'Webhooks', iconClass: 'bg-slate-700' },
+  ]
+
+  const certifications = [
+    { icon: Shield, label: 'SOC 2 Type II' },
+    { icon: Lock, label: 'AES-256 at rest' },
+    { icon: Users, label: 'Multi-tenant isolation' },
   ]
 
   return (
-    <section id="features" className="bg-white py-24">
+    <section id="features" data-nav-theme="light" className="bg-white py-24">
       <div className="mx-auto max-w-7xl space-y-24 px-6">
         <JobsFeature />
         <ChecksFeature />
 
-        <div className="grid gap-8 border-t border-slate-100 pt-16 md:grid-cols-2">
-          {miniFeatures.map((f, i) => (
-            <Reveal key={f.title} delay={i * 100} className="flex gap-4">
-              <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-indigo-50">
-                <f.icon className="size-6 text-indigo-600" />
+        <div className="grid gap-10 border-t border-slate-100 pt-16 sm:gap-8 md:grid-cols-2">
+          <Reveal className="flex gap-4">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-indigo-50">
+              <Bell className="size-6 text-indigo-600" />
+            </div>
+            <div>
+              <h4 className="mb-1.5 text-lg font-semibold text-slate-900">Instant alerting</h4>
+              <p className="text-sm leading-relaxed text-slate-500">
+                Send alerts to 9+ destinations including SMS, Email, Slack and PagerDuty.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {channels.map(c => (
+                  <ChannelBadge key={c.label} icon={c.icon} label={c.label} iconClass={c.iconClass} />
+                ))}
               </div>
-              <div>
-                <h4 className="mb-1.5 text-lg font-semibold text-slate-900">{f.title}</h4>
-                <p className="text-sm leading-relaxed text-slate-500">{f.description}</p>
+            </div>
+          </Reveal>
+          <Reveal delay={100} className="flex gap-4">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-indigo-50">
+              <Shield className="size-6 text-indigo-600" />
+            </div>
+            <div>
+              <h4 className="mb-1.5 text-lg font-semibold text-slate-900">Enterprise-grade security</h4>
+              <p className="text-sm leading-relaxed text-slate-500">
+                SOC2 compliant, encrypted at rest, with strict multi-tenant isolation.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {certifications.map(c => (
+                  <SecurityBadge key={c.label} icon={c.icon} label={c.label} />
+                ))}
               </div>
-            </Reveal>
-          ))}
+            </div>
+          </Reveal>
         </div>
       </div>
     </section>
@@ -436,7 +593,7 @@ function StatsSection() {
     { value: '2014', label: 'Founded in California' },
   ]
   return (
-    <section id="stats" className="bg-slate-950 py-20">
+    <section id="stats" data-nav-theme="dark" className="bg-slate-950 py-20">
       <div className="mx-auto max-w-7xl px-6">
         <Reveal>
           <h2 className="mb-12 text-2xl font-bold text-white">The world&apos;s leading job monitoring service</h2>
@@ -462,59 +619,60 @@ function ContactSection() {
     { icon: Mail, label: 'hello@cronhive.io' },
     { icon: HelpCircle, label: 'FAQ' },
     { icon: FileText, label: 'Documentation' },
-    { icon: Share2, label: 'Follow us' },
   ]
 
   return (
-    <section id="contact" className="bg-slate-50 py-24">
-      <div className="mx-auto max-w-7xl px-6">
-        <div className="grid gap-16 md:grid-cols-2">
-          <Reveal>
-            <h2 className="mb-4 text-3xl font-bold text-slate-900">Book a demo</h2>
-            <p className="mb-8 text-slate-500">
-              Fill up the form and our team will get back to you within 24 hours.
-            </p>
-            <div className="space-y-4">
-              {links.map(l => (
-                <div key={l.label} className="flex items-center gap-3 text-sm text-slate-600">
-                  <l.icon className="size-4 text-indigo-600" />
-                  {l.label}
-                </div>
-              ))}
+    <section id="contact" data-nav-theme="light" className="bg-white py-24">
+      <div className="mx-auto max-w-5xl px-6">
+        <Reveal>
+          <div className="grid gap-12 md:grid-cols-2 md:gap-20">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Book a demo</h2>
+              <p className="mt-3 text-slate-500">
+                Fill out the form and our team will get back to you within 24 hours.
+              </p>
+              <ul className="mt-10 space-y-4 border-t border-slate-100 pt-8">
+                {links.map(l => (
+                  <li key={l.label} className="flex items-center gap-3 text-sm text-slate-600">
+                    <l.icon className="size-4 text-indigo-600" strokeWidth={1.75} />
+                    {l.label}
+                  </li>
+                ))}
+              </ul>
             </div>
-          </Reveal>
-          <Reveal delay={120}>
-            <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-              <div className="space-y-5">
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Your Name</label>
-                  <input
-                    className="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm transition-shadow focus:border-transparent focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                    placeholder="John"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Your Mail</label>
-                  <input
-                    className="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm transition-shadow focus:border-transparent focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                    placeholder="john@company.com"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Your Message</label>
-                  <textarea
-                    rows={4}
-                    className="w-full resize-none rounded-lg border border-slate-200 px-4 py-2.5 text-sm transition-shadow focus:border-transparent focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                    placeholder="Tell us about your needs..."
-                  />
-                </div>
-                <button className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-all hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-200 active:translate-y-0">
-                  Book Now
-                </button>
+
+            <form className="space-y-5">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Your name</label>
+                <input
+                  className="w-full rounded-md border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
+                  placeholder="John"
+                />
               </div>
-            </div>
-          </Reveal>
-        </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Your email</label>
+                <input
+                  className="w-full rounded-md border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
+                  placeholder="john@company.com"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Message</label>
+                <textarea
+                  rows={4}
+                  className="w-full resize-none rounded-md border border-slate-200 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
+                  placeholder="Tell us about your needs..."
+                />
+              </div>
+              <button
+                type="submit"
+                className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
+              >
+                Send message
+              </button>
+            </form>
+          </div>
+        </Reveal>
       </div>
     </section>
   )
@@ -522,21 +680,24 @@ function ContactSection() {
 
 function CTASection() {
   return (
-    <section className="bg-white py-20">
-      <Reveal className="mx-auto max-w-7xl px-6 text-center">
-        <h2 className="text-3xl font-bold text-slate-900">
-          Are you excited for CronHive? <span className="inline-block">🎉</span>
+    <section data-nav-theme="dark" className="bg-slate-950 py-24">
+      <Reveal className="mx-auto max-w-3xl px-6 text-center">
+        <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          Are you excited for CronHive?
         </h2>
-        <p className="mx-auto mt-4 max-w-lg text-slate-500">
+        <p className="mx-auto mt-4 max-w-lg text-slate-400">
           Send alerts to 9+ destinations including SMS, Email and popular services like Slack and PagerDuty.
         </p>
-        <div className="mt-8">
+        <div className="mt-8 flex flex-col items-center justify-center gap-5 sm:flex-row">
           <Link
             href="/keys"
-            className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-3 text-sm font-medium text-white shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-xl active:translate-y-0"
+            className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-2.5 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-200"
           >
             Start for free today
             <ArrowRight className="size-4" />
+          </Link>
+          <Link href="#contact" className="text-sm font-medium text-slate-400 transition-colors hover:text-white">
+            Talk to sales &rarr;
           </Link>
         </div>
       </Reveal>
@@ -552,7 +713,7 @@ function Footer() {
   ]
 
   return (
-    <footer className="border-t border-slate-800 bg-slate-950 py-16">
+    <footer data-nav-theme="dark" className="border-t border-slate-800 bg-slate-950 py-16">
       <div className="mx-auto max-w-7xl px-6">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           <div>
