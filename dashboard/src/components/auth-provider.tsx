@@ -118,9 +118,13 @@ function AuthScreen({ onAuth }: { onAuth: (token: string, user: User) => void })
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setToken] = useState<string | null>(null)
-  const [user, setUser] = useState<User | null>(null)
-  const [ready, setReady] = useState(false)
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('cronhive_token'))
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const stored = localStorage.getItem('cronhive_user')
+      return stored ? JSON.parse(stored) : null
+    } catch { return null }
+  })
 
   const logout = useCallback(() => {
     localStorage.removeItem('cronhive_token')
@@ -130,19 +134,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   useEffect(() => {
-    setToken(localStorage.getItem('cronhive_token'))
-    try {
-      const stored = localStorage.getItem('cronhive_user')
-      if (stored) setUser(JSON.parse(stored))
-    } catch { /* ignore */ }
-    setReady(true)
-
     const handler = () => logout()
     window.addEventListener('cronhive:unauthorized', handler)
     return () => window.removeEventListener('cronhive:unauthorized', handler)
   }, [logout])
-
-  if (!ready) return null
 
   if (!token || !user) {
     return (

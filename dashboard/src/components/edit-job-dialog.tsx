@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { api, Job } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,6 +32,7 @@ const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 export function EditJobDialog({ job, open, onClose, onUpdated }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [prevJob, setPrevJob] = useState(job)
   const [form, setForm] = useState({
     name: job.name,
     cron_expr: job.cron_expr,
@@ -40,7 +41,8 @@ export function EditJobDialog({ job, open, onClose, onUpdated }: Props) {
     timezone: job.timezone,
   })
 
-  useEffect(() => {
+  if (prevJob !== job) {
+    setPrevJob(job)
     setForm({
       name: job.name,
       cron_expr: job.cron_expr,
@@ -48,7 +50,7 @@ export function EditJobDialog({ job, open, onClose, onUpdated }: Props) {
       http_method: job.http_method,
       timezone: job.timezone,
     })
-  }, [job])
+  }
 
   const setField = <K extends keyof typeof form>(k: K) => (v: (typeof form)[K]) =>
     setForm(f => ({ ...f, [k]: v }))

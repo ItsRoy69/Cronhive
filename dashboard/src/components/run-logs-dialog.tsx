@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useReducer } from 'react'
 import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,28 +15,43 @@ interface Props {
   onClose: () => void
 }
 
+type State = { loading: boolean; logs: string; logUrl: string | null }
+type Action =
+  | { type: 'fetch' }
+  | { type: 'logs'; payload: string }
+  | { type: 'url'; payload: string }
+  | { type: 'error' }
+
+function reducer(_: State, action: Action): State {
+  switch (action.type) {
+    case 'fetch': return { loading: true, logs: '', logUrl: null }
+    case 'logs':  return { loading: false, logs: action.payload, logUrl: null }
+    case 'url':   return { loading: false, logs: '', logUrl: action.payload }
+    case 'error': return { loading: false, logs: 'Failed to load logs.', logUrl: null }
+  }
+}
+
 export function RunLogsDialog({ runId, onClose }: Props) {
-  const [logs, setLogs] = useState<string>('')
-  const [loading, setLoading] = useState(false)
-  const [logUrl, setLogUrl] = useState<string | null>(null)
+  const [{ loading, logs, logUrl }, dispatch] = useReducer(reducer, {
+    loading: false,
+    logs: '',
+    logUrl: null,
+  })
 
   useEffect(() => {
     if (!runId) return
-    setLoading(true)
-    setLogs('')
-    setLogUrl(null)
+    dispatch({ type: 'fetch' })
     api.runs.logs(runId)
       .then(data => {
         if (typeof data === 'string') {
-          setLogs(data)
+          dispatch({ type: 'logs', payload: data })
         } else if (data && typeof data === 'object' && 'log_url' in data) {
-          setLogUrl((data as { log_url: string }).log_url)
+          dispatch({ type: 'url', payload: (data as { log_url: string }).log_url })
         } else {
-          setLogs('No logs available.')
+          dispatch({ type: 'logs', payload: 'No logs available.' })
         }
       })
-      .catch(() => setLogs('Failed to load logs.'))
-      .finally(() => setLoading(false))
+      .catch(() => dispatch({ type: 'error' }))
   }, [runId])
 
   return (
