@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { Activity, MessageSquare, Mail, Star } from 'lucide-react'
 import { authLogin, authSignup } from '@/lib/api'
 
 type User = { name: string; email: string }
@@ -16,6 +16,35 @@ const AuthContext = createContext<AuthContextType>(null!)
 
 export function useAuth() {
   return useContext(AuthContext)
+}
+
+function FloatingAlert({
+  icon: Icon,
+  iconClass,
+  text,
+  className,
+  delay,
+}: {
+  icon: React.ElementType
+  iconClass: string
+  text: string
+  className?: string
+  delay?: string
+}) {
+  return (
+    <div
+      className={`animate-float w-56 rounded-xl border border-slate-200 bg-white p-3 shadow-lg shadow-slate-900/10 ${className ?? ''}`}
+      style={{ animationDelay: delay }}
+    >
+      <div className="mb-1.5 flex items-center gap-2">
+        <div className={`flex size-5 items-center justify-center rounded ${iconClass}`}>
+          <Icon className="size-3 text-white" strokeWidth={2.5} />
+        </div>
+        <span className="text-xs font-medium text-slate-900">CronHive Alert</span>
+      </div>
+      <p className="text-xs leading-snug text-slate-600">{text}</p>
+    </div>
+  )
 }
 
 function AuthScreen({ onAuth }: { onAuth: (token: string, user: User) => void }) {
@@ -45,150 +74,195 @@ function AuthScreen({ onAuth }: { onAuth: (token: string, user: User) => void })
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      {/* Back to homepage header */}
-      <header className="flex items-center px-6 py-4 border-b border-gray-100 shrink-0">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">
-          <ArrowLeft className="size-4" />
-          Back to homepage
-        </Link>
-      </header>
+    <div className="flex min-h-screen flex-col bg-white">
+      <div className="flex flex-1">
+        {/* Left panel - branding */}
+        <div className="relative hidden overflow-hidden bg-gradient-to-br from-indigo-600 to-violet-700 lg:flex lg:w-1/2">
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="animate-blob absolute -top-24 left-1/4 size-96 rounded-full bg-white/10 blur-3xl" />
+            <div
+              className="animate-blob absolute bottom-0 right-1/4 size-96 rounded-full bg-violet-400/20 blur-3xl"
+              style={{ animationDelay: '3s' }}
+            />
+          </div>
 
-      <div className="flex-1 flex">
-      {/* Left panel - branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-indigo-600 to-indigo-800 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.05%22%3E%3Cpath%20d%3D%22M36%2034v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6%2034v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6%204V0H4v4H0v2h4v4h2V6h4V4H6z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-50" />
-        <div className="relative z-10 flex flex-col justify-between p-12 w-full">
-          <div className="flex items-center gap-2">
-            <div className="size-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <span className="text-sm font-bold text-white">C</span>
-            </div>
-            <span className="text-lg font-semibold text-white">CronHive</span>
-          </div>
-          <div>
-            <h2 className="text-3xl font-bold text-white leading-snug mb-4">
-              Simple monitoring<br />for every application
-            </h2>
-            <p className="text-indigo-200 text-sm leading-relaxed max-w-sm">
-              Performance insights and uptime monitoring for cron jobs, websites, APIs and more.
-            </p>
-            <div className="mt-8 flex items-center gap-3">
-              <div className="size-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                <span className="text-xs font-semibold text-white">NG</span>
+          <div className="relative z-10 flex w-full flex-col justify-between p-12">
+            <Link href="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
+              <div className="flex size-8 items-center justify-center rounded-lg bg-white/15 backdrop-blur-sm ring-1 ring-white/20">
+                <Activity className="size-4.5 text-white" strokeWidth={2.5} />
               </div>
-              <div>
-                <p className="text-sm text-white font-medium">&quot;Before using CronHive we had an important data backup job fail silently for over a month.&quot;</p>
-                <p className="text-xs text-indigo-300 mt-1">Natalie Gordon · CEO of Babyst</p>
+              <span className="text-lg font-semibold tracking-tight text-white">CronHive</span>
+            </Link>
+
+            <div>
+              <h2 className="mb-4 text-3xl leading-snug font-bold text-white">
+                Simple monitoring
+                <br />
+                for every application
+              </h2>
+              <p className="max-w-sm text-sm leading-relaxed text-indigo-100">
+                Performance insights and uptime monitoring for cron jobs, websites, APIs and more.
+              </p>
+
+              <div className="mt-8 rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-sm">
+                <div className="mb-2 flex items-center gap-0.5" aria-hidden>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} className="size-3.5 fill-amber-300 text-amber-300" />
+                  ))}
+                </div>
+                <p className="text-sm leading-relaxed text-white">
+                  &quot;Before using CronHive we had an important data backup job fail silently for over a
+                  month.&quot;
+                </p>
+                <div className="mt-4 flex items-center gap-3">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/20">
+                    <span className="text-xs font-semibold text-white">NG</span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-white">Natalie Gordon</p>
+                    <p className="text-xs text-indigo-200">CEO of Babyst</p>
+                  </div>
+                </div>
               </div>
             </div>
+
+            <div className="flex items-center gap-6 text-xs text-indigo-200">
+              <span>50,000+ jobs monitored</span>
+              <span>·</span>
+              <span>15,000+ alerts/day</span>
+            </div>
           </div>
-          <div className="flex items-center gap-6 text-xs text-indigo-300">
-            <span>50,000+ jobs monitored</span>
-            <span>·</span>
-            <span>15,000+ alerts/day</span>
+
+          {/* Floating alert cards */}
+          <div className="absolute right-10 top-1/3 hidden xl:block">
+            <FloatingAlert icon={MessageSquare} iconClass="bg-[#4A154B]" text={'"Shopify Sync" cron job has failed'} />
+            <FloatingAlert
+              icon={Mail}
+              iconClass="bg-red-500"
+              text={'"Storefront API" check is failing'}
+              className="ml-8 mt-3"
+              delay="1.5s"
+            />
           </div>
         </div>
-      </div>
 
-      {/* Right panel - form */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-sm">
-          <div className="lg:hidden flex items-center gap-2 mb-10">
-            <div className="size-7 rounded-lg bg-indigo-600 flex items-center justify-center">
-              <span className="text-sm font-bold text-white">C</span>
+        {/* Right panel - form */}
+        <div className="flex flex-1 items-center justify-center px-6 py-12">
+          <div className="w-full max-w-sm">
+            <Link href="/" className="mb-10 flex items-center gap-2 transition-opacity hover:opacity-80 lg:hidden">
+              <div className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600">
+                <Activity className="size-4 text-white" strokeWidth={2.5} />
+              </div>
+              <span className="text-lg font-semibold tracking-tight text-slate-900">CronHive</span>
+            </Link>
+
+            <div className="mb-8">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                {mode === 'login' ? 'Welcome back' : 'Create your account'}
+              </h1>
+              <p className="mt-2 text-sm text-slate-500">
+                {mode === 'login'
+                  ? 'Enter your credentials to access your dashboard'
+                  : 'Start monitoring your jobs in minutes'}
+              </p>
             </div>
-            <span className="text-lg font-semibold text-gray-900">CronHive</span>
-          </div>
 
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">
-              {mode === 'login' ? 'Welcome back' : 'Create your account'}
-            </h1>
-            <p className="text-sm text-gray-500 mt-2">
-              {mode === 'login'
-                ? 'Enter your credentials to access your dashboard'
-                : 'Start monitoring your jobs in minutes'}
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {mode === 'signup' && (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {mode === 'signup' && (
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-slate-700">Name</label>
+                  <input
+                    placeholder="Your name"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-transparent focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  />
+                </div>
+              )}
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Name</label>
+                <label className="text-sm font-medium text-slate-700">Email</label>
                 <input
-                  placeholder="Your name"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  autoFocus
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-transparent focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 />
               </div>
-            )}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">Email</label>
-              <input
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                autoFocus
-                className="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
-              />
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-slate-700">Password</label>
+                  {mode === 'login' && (
+                    <button type="button" className="cursor-pointer text-xs text-indigo-600 hover:text-indigo-700">
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="password"
+                  placeholder={mode === 'signup' ? 'Min 8 characters' : '••••••••'}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 transition-shadow focus:border-transparent focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+
+              {error && (
+                <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3">
+                  <p className="text-sm text-red-600">{error}</p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-shine w-full cursor-pointer rounded-full bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-300 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+              >
+                {loading ? 'Please wait…' : mode === 'login' ? 'Sign In' : 'Create Account'}
+              </button>
+            </form>
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white px-3 text-slate-400">or</span>
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700">Password</label>
-                {mode === 'login' && (
-                  <button type="button" className="text-xs text-indigo-600 hover:text-indigo-700">
-                    Forgot password?
+
+            <p className="text-center text-sm text-slate-500">
+              {mode === 'login' ? (
+                <>
+                  Don&apos;t have an account?{' '}
+                  <button
+                    onClick={() => {
+                      setMode('signup')
+                      setError('')
+                    }}
+                    className="cursor-pointer font-medium text-indigo-600 transition-colors hover:text-indigo-700"
+                  >
+                    Sign up
                   </button>
-                )}
-              </div>
-              <input
-                type="password"
-                placeholder={mode === 'signup' ? 'Min 8 characters' : '••••••••'}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow"
-              />
-            </div>
-
-            {error && (
-              <div className="rounded-lg bg-red-50 border border-red-100 px-4 py-3">
-                <p className="text-sm text-red-600">{error}</p>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
-            >
-              {loading ? 'Please wait…' : mode === 'login' ? 'Sign In' : 'Create Account'}
-            </button>
-          </form>
-
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200" />
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-white px-3 text-gray-400">or</span>
-            </div>
+                </>
+              ) : (
+                <>
+                  Already have an account?{' '}
+                  <button
+                    onClick={() => {
+                      setMode('login')
+                      setError('')
+                    }}
+                    className="cursor-pointer font-medium text-indigo-600 transition-colors hover:text-indigo-700"
+                  >
+                    Sign in
+                  </button>
+                </>
+              )}
+            </p>
           </div>
-
-          <p className="text-center text-sm text-gray-500">
-            {mode === 'login' ? (
-              <>Don&apos;t have an account?{' '}
-                <button onClick={() => { setMode('signup'); setError('') }} className="text-indigo-600 font-medium hover:text-indigo-700 transition-colors">Sign up</button>
-              </>
-            ) : (
-              <>Already have an account?{' '}
-                <button onClick={() => { setMode('login'); setError('') }} className="text-indigo-600 font-medium hover:text-indigo-700 transition-colors">Sign in</button>
-              </>
-            )}
-          </p>
         </div>
-      </div>
       </div>
     </div>
   )
