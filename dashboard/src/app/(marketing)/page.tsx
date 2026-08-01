@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, Clock, Bell, Shield, Zap, CheckCircle2, Mail, Phone, MapPin } from 'lucide-react'
+import { ArrowRight, Clock, Bell, Shield, Zap, Mail, Phone, MapPin } from 'lucide-react'
 
 function Navbar() {
   return (

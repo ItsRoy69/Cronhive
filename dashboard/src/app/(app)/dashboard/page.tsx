@@ -218,12 +218,6 @@ export default function DashboardPage() {
     mutate()
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this job?')) return
-    await api.jobs.delete(id)
-    mutate()
-  }
-
   const FILTERS: { id: StatusFilter; label: string; count: number | undefined }[] = [
     { id: 'all',    label: 'All Jobs',  count: jobs ? total  : undefined },
     { id: 'active', label: 'Active',    count: jobs ? active : undefined },
