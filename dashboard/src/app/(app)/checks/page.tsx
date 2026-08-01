@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import {
   Globe, Plus, Search, X, ArrowUpRight, ArrowDownRight,
@@ -155,11 +155,9 @@ function UptimeBar({ percentage }: { percentage: number }) {
 }
 
 function SSLBadge({ expiresAt }: { expiresAt: string | null }) {
-  const days = useMemo(() => {
-    if (!expiresAt) return null
-    return Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 86400000)
-  }, [expiresAt])
-  if (days == null) return <span className="text-xs text-gray-400">—</span>
+  const [now] = useState(() => Date.now())
+  if (!expiresAt) return <span className="text-xs text-gray-400">—</span>
+  const days = Math.ceil((new Date(expiresAt).getTime() - now) / 86400000)
   if (days < 0) return <span className="text-xs text-red-600 font-medium">Expired</span>
   if (days < 14) return (
     <span className="inline-flex items-center gap-1 text-xs text-red-600 font-medium">
