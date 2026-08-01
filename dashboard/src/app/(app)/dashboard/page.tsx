@@ -311,7 +311,7 @@ export default function DashboardPage() {
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
                 <RechartsTooltip
                   contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12 }}
-                  formatter={(value: number) => [`${value}ms`, 'Avg Duration']}
+                  formatter={(value) => [`${value}ms`, 'Avg Duration']}
                 />
                 <Bar dataKey="avg" fill="#818cf8" radius={[4, 4, 0, 0]} />
               </BarChart>
