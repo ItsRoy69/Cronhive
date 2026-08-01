@@ -127,15 +127,15 @@ export default function JobDetailPage({
 
   const statusLabel = job?.status === 'active' ? 'Healthy' : job?.status === 'paused' ? 'Paused' : (job?.status ?? '…')
   const statusClass =
-    job?.status === 'active'  ? 'bg-green-500/15 text-green-400 border border-green-500/30' :
-    job?.status === 'paused'  ? 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/30' :
+    job?.status === 'active'  ? 'bg-green-100 text-green-700 border border-green-200' :
+    job?.status === 'paused'  ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' :
                                 'bg-muted text-muted-foreground border border-border'
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
 
       {/* ── Header ── */}
-      <div className="px-6 py-4 border-b border-border bg-card/30 shrink-0">
+      <div className="px-6 py-4 border-b border-border bg-background shrink-0">
         {/* Breadcrumb */}
         <div className="flex items-center gap-1 mb-3 text-xs text-muted-foreground">
           <Link href="/" className="hover:text-foreground transition-colors">Jobs</Link>
@@ -180,7 +180,7 @@ export default function JobDetailPage({
 
       {/* ── Stats row ── */}
       {job && (
-        <div className="px-6 py-4 border-b border-border bg-card/20 shrink-0">
+        <div className="px-6 py-4 border-b border-border bg-background shrink-0">
           <div className="flex items-start gap-8">
             <div className="flex flex-col gap-1">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Status</p>
@@ -200,8 +200,8 @@ export default function JobDetailPage({
               sub="7 Days"
               valueClass={
                 successRate === null ? '' :
-                successRate >= 90 ? 'text-green-400' :
-                successRate >= 70 ? 'text-yellow-400' : 'text-red-400'
+                successRate >= 90 ? 'text-green-700' :
+                successRate >= 70 ? 'text-yellow-700' : 'text-red-600'
               }
             />
 
@@ -287,8 +287,8 @@ export default function JobDetailPage({
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: 'oklch(0.13 0 0)',
-                        border: '1px solid oklch(1 0 0 / 8%)',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e5e7eb',
                         borderRadius: '6px',
                         fontSize: '12px',
                       }}
@@ -403,7 +403,7 @@ export default function JobDetailPage({
 
         {/* Right: Monitor Details panel */}
         {job && (
-          <aside className="w-64 shrink-0 border-l border-border bg-card/20 overflow-y-auto">
+          <aside className="w-64 shrink-0 border-l border-border bg-background overflow-y-auto">
             <div className="p-5 space-y-5">
               <h3 className="text-sm font-semibold">Monitor Details</h3>
 
