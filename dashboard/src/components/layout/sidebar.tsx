@@ -58,13 +58,13 @@ export function Sidebar() {
       <Link
         href={navHref(href)}
         className={cn(
-          'flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm transition-colors',
+          'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors',
           active
-            ? 'bg-white/10 text-white'
-            : 'text-sidebar-foreground/55 hover:text-sidebar-foreground hover:bg-white/5'
+            ? 'bg-indigo-50 text-indigo-700 font-medium'
+            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
         )}
       >
-        <Icon className={cn('size-4 shrink-0', active ? 'text-white' : 'text-sidebar-foreground/40')} />
+        <Icon className={cn('size-4 shrink-0', active ? 'text-indigo-600' : 'text-gray-400')} />
         {label}
         {label === 'Issues' && (
           <span className="ml-auto size-1.5 rounded-full bg-red-400 shrink-0" />
@@ -74,26 +74,26 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="dark w-[210px] shrink-0 flex flex-col h-screen bg-sidebar border-r border-sidebar-border">
+    <aside className="w-[220px] shrink-0 flex flex-col h-screen bg-white border-r border-gray-100">
       {/* Logo */}
-      <div className="px-4 py-4">
+      <div className="px-5 py-5">
         <div className="flex items-center gap-2">
-          <div className="size-6 rounded bg-amber-500 flex items-center justify-center shrink-0">
-            <span className="text-xs font-bold text-black leading-none">C</span>
+          <div className="size-7 rounded-lg bg-indigo-600 flex items-center justify-center shrink-0">
+            <span className="text-xs font-bold text-white leading-none">C</span>
           </div>
-          <p className="text-sm font-semibold text-white">CronHive</p>
+          <p className="text-sm font-bold text-gray-900">CronHive</p>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-2 py-1 overflow-y-auto">
+      <nav className="flex-1 px-3 py-1 overflow-y-auto">
         <div className="space-y-0.5">
           {PRIMARY_NAV.map(item => (
             <NavItem key={item.label} {...item} />
           ))}
         </div>
 
-        <div className="my-3 border-t border-white/8" />
+        <div className="my-3 border-t border-gray-100" />
 
         <div className="space-y-0.5">
           {SECONDARY_NAV.map(item => (
@@ -103,27 +103,28 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom */}
-      <div className="px-2 py-3 border-t border-white/8">
+      <div className="px-3 py-3 border-t border-gray-100">
         <div className="space-y-0.5 mb-3">
           {BOTTOM_NAV.map(item => (
             <NavItem key={item.label} {...item} />
           ))}
         </div>
 
-        <div className="border-t border-white/8 pt-3">
+        <div className="border-t border-gray-100 pt-3">
           <button
             onClick={logout}
-            className="flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm text-sidebar-foreground/55 hover:text-sidebar-foreground hover:bg-white/5 transition-colors w-full mb-2"
+            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors w-full mb-2"
           >
-            <LogOut className="size-4 shrink-0 text-sidebar-foreground/40" />
+            <LogOut className="size-4 shrink-0 text-gray-400" />
             Sign out
           </button>
-          <div className="flex items-center gap-2.5 px-3 py-1">
-            <div className="size-7 rounded-full bg-slate-600 flex items-center justify-center shrink-0 text-xs font-medium text-white">
+          <div className="flex items-center gap-2.5 px-3 py-1.5">
+            <div className="size-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 text-xs font-semibold text-indigo-600">
               {initials}
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-medium text-sidebar-foreground/80 truncate">{user.name}</p>
+              <p className="text-xs font-medium text-gray-900 truncate">{user.name}</p>
+              <p className="text-[10px] text-gray-400 truncate">{user.email}</p>
             </div>
           </div>
         </div>
