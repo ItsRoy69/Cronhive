@@ -1,6 +1,8 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 import { authLogin, authSignup } from '@/lib/api'
 
 type User = { name: string; email: string }
@@ -43,7 +45,16 @@ function AuthScreen({ onAuth }: { onAuth: (token: string, user: User) => void })
   }
 
   return (
-    <div className="min-h-screen flex bg-white">
+    <div className="min-h-screen flex flex-col bg-white">
+      {/* Back to homepage header */}
+      <header className="flex items-center px-6 py-4 border-b border-gray-100 shrink-0">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">
+          <ArrowLeft className="size-4" />
+          Back to homepage
+        </Link>
+      </header>
+
+      <div className="flex-1 flex">
       {/* Left panel - branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-indigo-600 to-indigo-800 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.05%22%3E%3Cpath%20d%3D%22M36%2034v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6%2034v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6%204V0H4v4H0v2h4v4h2V6h4V4H6z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-50" />
@@ -83,8 +94,8 @@ function AuthScreen({ onAuth }: { onAuth: (token: string, user: User) => void })
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
           <div className="lg:hidden flex items-center gap-2 mb-10">
-            <div className="size-7 rounded bg-amber-500 flex items-center justify-center">
-              <span className="text-sm font-bold text-black">C</span>
+            <div className="size-7 rounded-lg bg-indigo-600 flex items-center justify-center">
+              <span className="text-sm font-bold text-white">C</span>
             </div>
             <span className="text-lg font-semibold text-gray-900">CronHive</span>
           </div>
@@ -177,6 +188,7 @@ function AuthScreen({ onAuth }: { onAuth: (token: string, user: User) => void })
             )}
           </p>
         </div>
+      </div>
       </div>
     </div>
   )

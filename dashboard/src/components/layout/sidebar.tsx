@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 import { useAuth } from '@/components/auth-provider'
 
 const PRIMARY_NAV = [
-  { href: '/',              label: 'Home',       icon: Home },
+  { href: '/dashboard',      label: 'Home',       icon: Home },
   { href: '/dashboard',      label: 'Jobs',       icon: Briefcase },
   { href: '/checks',     label: 'Checks',     icon: CheckSquare2 },
   { href: '/heartbeats', label: 'Heartbeats', icon: HeartPulse },
