@@ -39,3 +39,8 @@ deploy/*.env
 # Misc
 *.log
 tmp/
+
+# Claude Code / Higgsfield skills
+.claude/
+.agents/skills/
+skills-lock.json
