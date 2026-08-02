@@ -155,19 +155,19 @@ export function CronPreview({ expr, className }: Props) {
   if (!description) return null
 
   return (
-    <div className={`rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 space-y-2.5 ${className ?? ''}`}>
+    <div className={`rounded-lg border border-indigo-100 bg-indigo-50/50 p-3 space-y-2.5 ${className ?? ''}`}>
       <div className="flex items-center gap-2">
-        <Clock className="size-3.5 text-amber-500 shrink-0" />
-        <span className="text-xs font-medium text-amber-400">{description}</span>
+        <Clock className="size-3.5 text-indigo-500 shrink-0" />
+        <span className="text-xs font-medium text-indigo-700">{description}</span>
       </div>
       {nextRuns.length > 0 && (
         <div className="space-y-1 pl-5">
-          <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider font-medium flex items-center gap-1.5">
+          <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium flex items-center gap-1.5">
             <CalendarClock className="size-2.5" /> Next runs
           </p>
           {nextRuns.map((d, i) => (
-            <p key={i} className="text-[11px] text-muted-foreground">
-              <span className="text-muted-foreground/40 mr-2 tabular-nums">{i + 1}.</span>
+            <p key={i} className="text-[11px] text-gray-500">
+              <span className="text-gray-300 mr-2 tabular-nums">{i + 1}.</span>
               {d.toLocaleString()}
             </p>
           ))}

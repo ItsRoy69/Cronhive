@@ -2,8 +2,6 @@
 
 import { useState } from 'react'
 import { CronPreview } from '@/components/cron-preview'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { Terminal, BookOpen } from 'lucide-react'
 
@@ -47,28 +45,29 @@ export default function CronEditorPage() {
   const isValid = parts.length === 5
 
   return (
-    <div className="p-8 max-w-3xl">
-      <div className="mb-8">
-        <div className="flex items-center gap-2.5 mb-1">
-          <Terminal className="size-4 text-amber-500" />
-          <h1 className="text-xl font-semibold">Cron Expression Editor</h1>
+    <div className="flex flex-col h-full bg-gray-50/50">
+      {/* Header */}
+      <div className="flex items-center justify-between px-8 py-5 bg-white border-b border-gray-100 shrink-0">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Cron Expression Editor</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Build and validate cron schedules with instant human-readable preview
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Build and validate cron schedules with instant human-readable preview
-        </p>
       </div>
 
-      {/* Editor card */}
-      <Card className="bg-card border-border mb-6">
-        <CardContent className="p-6 space-y-5">
+      {/* Content */}
+      <div className="flex-1 overflow-auto px-8 py-6 space-y-6">
+        {/* Editor card */}
+        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm space-y-5">
           <div>
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2 block">
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-widest mb-2 block">
               Expression
             </label>
-            <Input
+            <input
               value={expr}
               onChange={e => setExpr(e.target.value)}
-              className="font-mono text-xl h-14 bg-muted/40 border-border tracking-[0.3em] text-center"
+              className="w-full font-mono text-xl h-14 rounded-lg border border-gray-200 bg-gray-50 tracking-[0.3em] text-center text-gray-900 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-colors"
               placeholder="* * * * *"
               spellCheck={false}
             />
@@ -84,13 +83,13 @@ export default function CronEditorPage() {
                   <div className={cn(
                     'text-sm px-2 py-2 rounded-md font-mono font-semibold border transition-colors',
                     active
-                      ? 'border-amber-500/40 bg-amber-500/10 text-amber-400'
-                      : 'border-border bg-muted/30 text-muted-foreground'
+                      ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
+                      : 'border-gray-200 bg-gray-50 text-gray-400'
                   )}>
                     {val || '?'}
                   </div>
-                  <p className="text-[11px] font-medium text-muted-foreground">{f.label}</p>
-                  <p className="text-[9px] text-muted-foreground/50">{f.range}</p>
+                  <p className="text-[11px] font-medium text-gray-500">{f.label}</p>
+                  <p className="text-[9px] text-gray-400">{f.range}</p>
                 </div>
               )
             })}
@@ -98,63 +97,61 @@ export default function CronEditorPage() {
 
           {/* Human-readable preview */}
           {isValid && <CronPreview expr={expr} />}
-        </CardContent>
-      </Card>
-
-      {/* Presets grid */}
-      <div className="mb-6">
-        <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
-          Common Presets
-          <span className="text-[10px] font-normal text-muted-foreground uppercase tracking-wide">
-            click to apply
-          </span>
-        </h2>
-        <div className="grid grid-cols-2 gap-1.5">
-          {PRESETS.map(p => {
-            const isActive = expr.trim() === p.expr
-            return (
-              <button
-                key={p.expr}
-                onClick={() => setExpr(p.expr)}
-                className={cn(
-                  'flex items-center justify-between px-3 py-2.5 rounded-lg border text-sm transition-all text-left',
-                  isActive
-                    ? 'border-amber-500/40 bg-amber-500/10 text-amber-400'
-                    : 'border-border hover:border-border/80 hover:bg-white/[0.03] text-foreground'
-                )}
-              >
-                <span className="font-medium">{p.label}</span>
-                <code className={cn(
-                  'text-[11px] font-mono px-2 py-0.5 rounded shrink-0',
-                  isActive ? 'bg-amber-500/20 text-amber-400' : 'bg-muted text-muted-foreground'
-                )}>
-                  {p.expr}
-                </code>
-              </button>
-            )
-          })}
         </div>
-      </div>
 
-      {/* Syntax reference */}
-      <Card className="bg-card border-border">
-        <CardContent className="p-6">
-          <h2 className="text-sm font-semibold mb-4 flex items-center gap-2">
-            <BookOpen className="size-3.5 text-muted-foreground" />
+        {/* Presets grid */}
+        <div>
+          <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            Common Presets
+            <span className="text-[10px] font-normal text-gray-400 uppercase tracking-wide">
+              click to apply
+            </span>
+          </h2>
+          <div className="grid grid-cols-2 gap-1.5">
+            {PRESETS.map(p => {
+              const isActive = expr.trim() === p.expr
+              return (
+                <button
+                  key={p.expr}
+                  onClick={() => setExpr(p.expr)}
+                  className={cn(
+                    'flex items-center justify-between px-3 py-2.5 rounded-lg border text-sm transition-all text-left',
+                    isActive
+                      ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
+                      : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm text-gray-700'
+                  )}
+                >
+                  <span className="font-medium">{p.label}</span>
+                  <code className={cn(
+                    'text-[11px] font-mono px-2 py-0.5 rounded shrink-0',
+                    isActive ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'
+                  )}>
+                    {p.expr}
+                  </code>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Syntax reference */}
+        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+          <h2 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <BookOpen className="size-3.5 text-gray-400" />
             Syntax Reference
           </h2>
           <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
             {SYNTAX_REF.map(({ sym, desc }) => (
               <div key={sym} className="flex items-center gap-3">
-                <code className="text-xs bg-muted/60 px-2.5 py-1 rounded border border-border font-mono w-16 text-center shrink-0">
+                <code className="text-xs bg-gray-50 px-2.5 py-1 rounded border border-gray-200 font-mono w-16 text-center shrink-0 text-gray-700">
                   {sym}
                 </code>
-                <span className="text-xs text-muted-foreground">{desc}</span>
+                <span className="text-xs text-gray-500">{desc}</span>
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }
